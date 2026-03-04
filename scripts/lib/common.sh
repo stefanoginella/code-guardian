@@ -187,13 +187,35 @@ get_scoped_files() {
   esac
 }
 
+# Build a grep pattern that matches paths containing any excluded directory
+_build_exclude_pattern() {
+  local pattern=""
+  for dir in "${CG_EXCLUDE_DIRS[@]}"; do
+    [[ -n "$pattern" ]] && pattern+="|"
+    pattern+="(^|/)${dir}/"
+  done
+  echo "$pattern"
+}
+
 # Write scope files to a temp file and return its path
+# Filters out files whose paths match any CG_EXCLUDE_DIRS entry.
 write_scope_file() {
   local scope="${1:-codebase}"
   local base_ref="${2:-}"
   local tmpfile
   tmpfile=$(mktemp /tmp/code-guardian-scope-XXXXXX)
-  get_scoped_files "$scope" "$base_ref" >"$tmpfile"
+  local raw
+  raw=$(mktemp /tmp/code-guardian-scope-raw-XXXXXX)
+  get_scoped_files "$scope" "$base_ref" >"$raw"
+
+  local exclude_pattern
+  exclude_pattern=$(_build_exclude_pattern)
+  if [[ -n "$exclude_pattern" ]]; then
+    grep -vE "$exclude_pattern" "$raw" >"$tmpfile" || true
+  else
+    mv "$raw" "$tmpfile"
+  fi
+  rm -f "$raw"
   echo "$tmpfile"
 }
 
