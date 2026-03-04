@@ -1,0 +1,54 @@
+name: Publish npm package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude-plugin/plugin.json'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check version change
+        id: version
+        run: |
+          if git diff HEAD~1 -- .claude-plugin/plugin.json | grep -q '"version"'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.version.outputs.changed == 'true'
+        with:
+          node-version: lts/*
+
+      - name: Prepublish
+        if: steps.version.outputs.changed == 'true'
+        run: bash build/prepublish.sh
+
+      - name: Determine npm tag
+        if: steps.version.outputs.changed == 'true'
+        id: tag
+        working-directory: package
+        run: |
+          version=$(grep '"version"' package.json | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+          if echo "$version" | grep -q '-'; then
+            prerelease=$(echo "$version" | sed 's/.*-\([a-zA-Z]*\).*/\1/')
+            echo "tag=${prerelease}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish
+        if: steps.version.outputs.changed == 'true'
+        working-directory: package
+        run: npm publish --provenance --access public --tag ${{ steps.tag.outputs.tag }}

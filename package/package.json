@@ -1,0 +1,18 @@
+{
+  "name": "@stefanoginella/code-guardian",
+  "version": "0.0.29",
+  "description": "Installs the code-guardian Claude Code plugin — deterministic security scanning layer",
+  "bin": {
+    "code-guardian": "cli.js"
+  },
+  "files": ["cli.js"],
+  "keywords": ["claude-code", "plugin", "security", "scanning", "sast", "vulnerability"],
+  "author": "Stefano Ginella",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stefanoginella/code-guardian.git",
+    "directory": "package"
+  },
+  "homepage": "https://github.com/stefanoginella/code-guardian/blob/main/README.md"
+}

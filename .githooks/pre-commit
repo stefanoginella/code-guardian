@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Sync package.json versions when plugin.json is being committed
+
+staged=$(git diff --cached --name-only)
+
+if echo "$staged" | grep -q '.claude-plugin/plugin.json'; then
+  bash "$(git rev-parse --show-toplevel)/build/sync-versions.sh"
+  git add package/package.json
+fi

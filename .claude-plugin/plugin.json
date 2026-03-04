@@ -1,0 +1,11 @@
+{
+  "name": "code-guardian",
+  "version": "0.0.29",
+  "description": "[EXPERIMENTAL] Deterministic + AI security scanning layer for Claude Code with AI-powered review.",
+  "author": {
+    "name": "Stefano Ginella"
+  },
+  "homepage": "https://github.com/stefanoginella/code-guardian",
+  "license": "MIT",
+  "keywords": ["security", "scanning", "sast", "vulnerability", "docker", "ci", "autofix", "ai-review"]
+}

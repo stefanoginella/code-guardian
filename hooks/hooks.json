@@ -1,0 +1,17 @@
+{
+  "description": "Code-Guardian hooks: startup message",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/startup-message.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

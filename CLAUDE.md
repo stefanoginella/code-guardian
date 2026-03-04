@@ -1,0 +1,3 @@
+- see `CONTRIBUTING.md` for useful developer info
+- the npm companion package is in `package/`
+- build scripts are in `build/` (not `scripts/` — that's for scanner wrappers)
