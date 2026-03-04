@@ -51,7 +51,7 @@ done < <(find . \( -name requirements.txt -o -name pyproject.toml -o -name setup
   -not -path '*/.tox/*' \
   -not -path '*/.nox/*' \
   -not -path '*/*.egg-info/*' \
-  $(get_find_exclude_args) \
+  "${CG_FIND_EXCLUDE_ARGS[@]}" \
   2>/dev/null | sort)
 
 if [[ ${#AUDIT_DIRS[@]} -eq 0 ]]; then

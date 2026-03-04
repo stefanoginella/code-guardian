@@ -34,7 +34,7 @@ done < <(find . -name Gemfile.lock \
   -not -path '*/vendor/*' \
   -not -path '*/.git/*' \
   -not -path '*/.bundle/*' \
-  $(get_find_exclude_args) \
+  "${CG_FIND_EXCLUDE_ARGS[@]}" \
   2>/dev/null | sort)
 
 if [[ ${#AUDIT_DIRS[@]} -eq 0 ]]; then

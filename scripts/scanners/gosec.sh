@@ -33,7 +33,7 @@ while IFS= read -r gomod; do
 done < <(find . -name go.mod \
   -not -path '*/vendor/*' \
   -not -path '*/.git/*' \
-  $(get_find_exclude_args) \
+  "${CG_FIND_EXCLUDE_ARGS[@]}" \
   2>/dev/null | sort)
 
 if [[ ${#SCAN_DIRS[@]} -eq 0 ]]; then

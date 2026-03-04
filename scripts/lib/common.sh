@@ -87,6 +87,14 @@ _load_user_exclusions() {
 }
 _load_user_exclusions
 
+# Pre-built find(1) exclusion arguments from CG_EXCLUDE_DIRS.
+# Usage: find . "${CG_FIND_EXCLUDE_ARGS[@]}" -name '*.txt'
+CG_FIND_EXCLUDE_ARGS=()
+for _cg_dir in "${CG_EXCLUDE_DIRS[@]}"; do
+  CG_FIND_EXCLUDE_ARGS+=("-not" "-path" "*/${_cg_dir}/*")
+done
+unset _cg_dir
+
 # Join array elements with a delimiter
 # Usage: join_by ',' "${array[@]}"
 join_by() {
@@ -101,15 +109,6 @@ join_by() {
 # Return exclusion dirs as a comma-separated string
 get_exclude_dirs_csv() {
   join_by ',' "${CG_EXCLUDE_DIRS[@]}"
-}
-
-# Build find(1) exclusion arguments from CG_EXCLUDE_DIRS.
-# Outputs -not -path patterns for each excluded directory.
-# Usage: find . $(get_find_exclude_args) -name '*.txt'
-get_find_exclude_args() {
-  for dir in "${CG_EXCLUDE_DIRS[@]}"; do
-    printf '%s\n' "-not" "-path" "*/${dir}/*"
-  done
 }
 
 # Write exclusion patterns (one regex per line) to a temp file for tools

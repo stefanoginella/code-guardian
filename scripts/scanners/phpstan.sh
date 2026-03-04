@@ -27,7 +27,7 @@ php_files_exist=false
 if [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]]; then
   grep -q '\.php$' "$SCOPE_FILE" 2>/dev/null && php_files_exist=true
 else
-  find . -name "*.php" -maxdepth 4 -not -path "*/vendor/*" $(get_find_exclude_args) 2>/dev/null | head -1 | grep -q . && php_files_exist=true
+  find . -name "*.php" -maxdepth 4 -not -path "*/vendor/*" "${CG_FIND_EXCLUDE_ARGS[@]}" 2>/dev/null | head -1 | grep -q . && php_files_exist=true
 fi
 
 if ! $php_files_exist; then
