@@ -136,15 +136,21 @@ Check the value of `$ARGUMENTS` (which has been substituted below). If it equals
 
 Current arguments: `$ARGUMENTS`
 
-If the arguments match `--configure`, ask the user: "Which tools do you want to run by default?" — list all available tools as individual options (e.g. "semgrep", "gitleaks", "trufflehog", etc. — one option per tool). Based on the answer, determine the config:
-- If the user selected ALL available tools → don't set `tools` (default runs everything)
-- If the user selected a subset → set `tools` to that list
+If the arguments match `--configure`, ask the user which tools to run by default. Since AskUserQuestion only supports 2-4 options, group tools by category. Ask (multi-select): "Which tool categories do you want enabled?" with options like:
+- "SAST scanners" (description: lists the SAST tools available, e.g. semgrep, eslint)
+- "Secret scanners" (description: lists the secret tools available, e.g. gitleaks, trufflehog)
+- "Dependency scanners" (description: lists the dep tools available, e.g. npm-audit, pip-audit, trivy)
+- "All tools (Recommended)" (description: run every available tool)
 
-Then ask the user: "What scope do you want to scan by default?" — options: "entire codebase" (default) sets `scope: "codebase"`, "only uncommitted changes" sets `scope: "uncommitted"`, "only unpushed commits" sets `scope: "unpushed"`.
+Based on the answer, determine the config:
+- If the user selected "All tools" or all categories → don't set `tools` (default runs everything)
+- If the user selected specific categories → set `tools` to the tools in those categories
 
-Then ask the user (multi-select): "Enable Docker fallback?" — explain that this allows Docker images to be used for tools not installed locally, with hardened security controls (pinned versions, read-only mounts, network isolation where possible). Options: "No" (default) sets `dockerFallback: false`, "Yes": `dockerFallback: true`
+Then ask the user: "What scope do you want to scan by default?" — options: "entire codebase (Recommended)" sets `scope: "codebase"`, "only uncommitted changes" sets `scope: "uncommitted"`, "only unpushed commits" sets `scope: "unpushed"`.
 
-Then, if test directories were detected in Step 6, ask the user (multi-select): "Which test directories should be excluded from SAST/secret scans?" — list each detected test directory as an option. Explain that dependency scanners (npm-audit, pip-audit) are unaffected. If the user selects any, add them to the config `exclude` array.
+Then ask the user: "Enable Docker fallback?" — explain that this allows Docker images to be used for tools not installed locally, with hardened security controls (pinned versions, read-only mounts, network isolation where possible). Options: "No (Recommended)" sets `dockerFallback: false`, "Yes" sets `dockerFallback: true`.
+
+Then, if test directories were detected in Step 6, ask the user (multi-select): "Which test directories should be excluded from SAST/secret scans?" — list each detected test directory as an option (max 4). Explain that dependency scanners (npm-audit, pip-audit) are unaffected. If the user selects any, add them to the config `exclude` array.
 
 Write the config file `.claude/code-guardian.config.json`:
 
