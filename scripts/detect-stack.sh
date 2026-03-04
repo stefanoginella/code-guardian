@@ -130,6 +130,42 @@ if ext_exists csproj || ext_exists sln || file_exists_any global.json; then
   package_managers+=("nuget")
 fi
 
+# Swift
+if file_exists_any Package.swift || ext_exists swift; then
+  languages+=("swift")
+  file_exists_any Package.resolved && package_managers+=("spm")
+fi
+
+# C/C++
+if ext_exists c || ext_exists cpp || ext_exists cc || ext_exists h || ext_exists hpp \
+  || file_exists_any CMakeLists.txt || file_exists_any Makefile || file_exists_any meson.build; then
+  languages+=("cpp")
+  file_exists_any CMakeLists.txt && package_managers+=("cmake")
+  file_exists_any conanfile.txt && package_managers+=("conan")
+  file_exists_any conanfile.py && package_managers+=("conan")
+  file_exists_any vcpkg.json && package_managers+=("vcpkg")
+fi
+
+# Elixir
+if ext_exists ex || ext_exists exs || file_exists_any mix.exs; then
+  languages+=("elixir")
+  file_exists_any mix.lock && package_managers+=("hex")
+  grep_in_files ':phoenix' mix.exs && frameworks+=("phoenix")
+fi
+
+# Scala
+if ext_exists scala || file_exists_any build.sbt; then
+  languages+=("scala")
+  package_managers+=("sbt")
+fi
+
+# Dart/Flutter
+if ext_exists dart || file_exists_any pubspec.yaml; then
+  languages+=("dart")
+  file_exists_any pubspec.lock && package_managers+=("pub")
+  grep_in_files 'flutter' pubspec.yaml && frameworks+=("flutter")
+fi
+
 # ── Docker detection ──────────────────────────────────────────────────
 if file_exists_any Dockerfile || ext_exists dockerfile; then
   has_docker=true

@@ -106,6 +106,52 @@ teardown() {
   assert_json_array_contains ".frameworks" "flask"
 }
 
+@test "detect-stack: Swift project" {
+  use_fixture swift
+  run bash "$SCRIPTS_DIR/detect-stack.sh" .
+  [ "$status" -eq 0 ]
+  assert_valid_json
+  assert_json_array_contains ".languages" "swift"
+}
+
+@test "detect-stack: C++ project" {
+  use_fixture cpp
+  run bash "$SCRIPTS_DIR/detect-stack.sh" .
+  [ "$status" -eq 0 ]
+  assert_valid_json
+  assert_json_array_contains ".languages" "cpp"
+  assert_json_array_contains ".packageManagers" "cmake"
+}
+
+@test "detect-stack: Elixir + Phoenix project" {
+  use_fixture elixir
+  run bash "$SCRIPTS_DIR/detect-stack.sh" .
+  [ "$status" -eq 0 ]
+  assert_valid_json
+  assert_json_array_contains ".languages" "elixir"
+  assert_json_array_contains ".packageManagers" "hex"
+  assert_json_array_contains ".frameworks" "phoenix"
+}
+
+@test "detect-stack: Scala project" {
+  use_fixture scala
+  run bash "$SCRIPTS_DIR/detect-stack.sh" .
+  [ "$status" -eq 0 ]
+  assert_valid_json
+  assert_json_array_contains ".languages" "scala"
+  assert_json_array_contains ".packageManagers" "sbt"
+}
+
+@test "detect-stack: Dart/Flutter project" {
+  use_fixture dart
+  run bash "$SCRIPTS_DIR/detect-stack.sh" .
+  [ "$status" -eq 0 ]
+  assert_valid_json
+  assert_json_array_contains ".languages" "dart"
+  assert_json_array_contains ".packageManagers" "pub"
+  assert_json_array_contains ".frameworks" "flutter"
+}
+
 @test "detect-stack: empty project" {
   use_fixture empty
   run bash "$SCRIPTS_DIR/detect-stack.sh" .

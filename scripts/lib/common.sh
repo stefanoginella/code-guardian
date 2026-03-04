@@ -54,6 +54,10 @@ CG_EXCLUDE_DIRS=(
   .nuxt
   _bmad
   _bmad-output
+  .dart_tool
+  _build
+  deps
+  .build
 )
 
 # Load user-configured exclusions from .claude/code-guardian.config.json

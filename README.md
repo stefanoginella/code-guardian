@@ -8,7 +8,7 @@ Deterministic security scanning layer for Claude Code.
 
 Auto-detects your project's tech stack and runs appropriate open-source CLI tools (SAST, secret detection, dependency auditing, container and IaC scanning) to find vulnerabilities. Every tool is free for private repositories, prefers local binaries, and produces a unified findings format so Claude can process results consistently. Docker is available as an opt-in fallback with pinned versions, read-only mounts, and network isolation. Scanning and fixing are separate commands — scan first to see the full picture, then fix what matters.
 
-> 🔧 The plugin ships 18 scanner wrappers and 4 orchestration scripts. The deterministic layer runs real CLI tools for known vulnerability patterns. After CLI tools finish, an AI reviewer automatically analyzes the code for business logic flaws, auth bypass, race conditions, and other issues that no scanner has rules for. You get both in one unified workflow.
+> 🔧 The plugin ships 28 scanner wrappers and 4 orchestration scripts. The deterministic layer runs real CLI tools for known vulnerability patterns. After CLI tools finish, an AI reviewer automatically analyzes the code for business logic flaws, auth bypass, race conditions, and other issues that no scanner has rules for. You get both in one unified workflow.
 
 ## 🚀 Commands
 
@@ -98,11 +98,17 @@ All tools are free, open-source, and work on private repositories with no limita
 | Category | Tool | Languages/Targets | Autofix | Docker Image |
 |----------|------|-------------------|---------|--------------|
 | SAST | Semgrep | Multi-language (30+) | Yes | `semgrep/semgrep` |
+| SAST | Bearer | JS, Python, Go, Ruby, Java, PHP, C# | No | `bearer/bearer` |
 | SAST | Bandit | Python | No | `python:3-slim` |
 | SAST | gosec | Go | No | `securego/gosec` |
 | SAST | Brakeman | Ruby/Rails | No | `presidentbeef/brakeman` |
 | SAST | ESLint (security) | JS/TS | Partial | — |
 | SAST | PHPStan | PHP | No | `ghcr.io/phpstan/phpstan` |
+| SAST | SpotBugs | Java/Kotlin bytecode | No | `ghcr.io/spotbugs/spotbugs` |
+| SAST | cppcheck | C/C++ | No | `facthunder/cppcheck` |
+| SAST | SwiftLint | Swift | No | `ghcr.io/realm/swiftlint` |
+| SAST | Sobelow | Elixir/Phoenix | No | — |
+| SAST | dart analyze | Dart/Flutter | No | — |
 | Secrets | Gitleaks | All | No | `zricethezav/gitleaks` |
 | Secrets | TruffleHog | All (filesystem) | No | `trufflesecurity/trufflehog` |
 | Dependencies | OSV-Scanner | All ecosystems | No | `ghcr.io/google/osv-scanner` |
@@ -111,10 +117,14 @@ All tools are free, open-source, and work on private repositories with no limita
 | Dependencies | cargo-audit | Rust | No | — |
 | Dependencies | bundler-audit | Ruby | No | — |
 | Dependencies | govulncheck | Go | No | — |
+| Dependencies | Composer audit | PHP | No | — |
+| Dependencies | dotnet audit | C#/.NET | No | — |
+| Vulnerability | Grype | All ecosystems | No | `anchore/grype` |
 | Container | Trivy | Images, FS, IaC | No | `aquasec/trivy` |
 | Container | Hadolint | Dockerfiles | No | `hadolint/hadolint` |
 | Container | Dockle | Docker images (manual) | No | `goodwithtech/dockle` |
 | IaC | Checkov | Terraform, CFN, K8s | No | `bridgecrew/checkov` |
+| IaC | KICS | Terraform, CFN, K8s, Docker | No | `checkmarx/kics` |
 
 > Local installation is the recommended method for all tools. Tools with Docker images can optionally use Docker as a fallback when `dockerFallback` is enabled — see [Configuration](#️-configuration). Tools without a Docker image always require local installation. Run `/code-guardian:code-guardian-setup` to see what's needed and get install commands.
 
@@ -192,7 +202,7 @@ code-guardian/
 │   ├── lib/               # Shared utilities and tool registry
 │   │   ├── common.sh      # Colors, logging, Docker helpers, scope management
 │   │   └── tool-registry.sh  # Stack → tools mapping, install commands, Docker images
-│   ├── scanners/          # 18 individual scanner wrappers (unified JSONL output)
+│   ├── scanners/          # 28 individual scanner wrappers (unified JSONL output)
 │   ├── detect-stack.sh    # Detects languages, frameworks, Docker, CI, IaC
 │   ├── check-tools.sh     # Checks tool availability (local + Docker)
 │   ├── scan.sh            # Main scan orchestrator
@@ -212,7 +222,7 @@ Each scanner wrapper follows a local-first execution strategy:
 2. **Docker image** (opt-in fallback) — If the tool isn't installed locally and Docker fallback is enabled (`"dockerFallback": true` in config or `CG_DOCKER_FALLBACK=1` env var), it runs via the tool's official Docker image with hardened security controls:
    - **Pinned versions** — Docker images use exact version tags from the tool registry, never `:latest`
    - **Read-only mounts** — Source code is mounted `:ro`
-   - **Network isolation** — `--network none` for tools that don't need network access (gitleaks, hadolint, checkov, gosec, brakeman, trufflehog, phpstan, osv-scanner, dockle)
+   - **Network isolation** — `--network none` for tools that don't need network access (gitleaks, hadolint, checkov, gosec, brakeman, trufflehog, phpstan, osv-scanner, dockle, bearer, kics, cppcheck, swiftlint, spotbugs)
    - **Minimal socket access** — Docker socket only mounted for image-scanning tools (trivy image mode, dockle)
 
 After choosing the execution environment, each wrapper:

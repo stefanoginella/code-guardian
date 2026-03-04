@@ -117,6 +117,66 @@ TOOL_PHPSTAN_INSTALL_MACOS="brew install phpstan"
 TOOL_PHPSTAN_INSTALL_LINUX="composer global require phpstan/phpstan"
 TOOL_PHPSTAN_CATEGORY="sast"
 
+# Bearer — data-flow SAST (multi-language)
+TOOL_BEARER_DOCKER="bearer/bearer:v1.47.3"
+TOOL_BEARER_INSTALL_MACOS="brew install bearer/tap/bearer"
+TOOL_BEARER_INSTALL_LINUX="brew install bearer/tap/bearer"
+TOOL_BEARER_CATEGORY="sast"
+
+# Grype — vulnerability scanner (SBOMs, filesystems)
+TOOL_GRYPE_DOCKER="anchore/grype:v0.93.0"
+TOOL_GRYPE_INSTALL_MACOS="brew install grype"
+TOOL_GRYPE_INSTALL_LINUX="brew install grype"
+TOOL_GRYPE_CATEGORY="vulnerability"
+
+# KICS — IaC security scanner (Terraform, CloudFormation, K8s, Docker, etc.)
+TOOL_KICS_DOCKER="checkmarx/kics:v2.1.7"
+TOOL_KICS_INSTALL_MACOS="brew install kics"
+TOOL_KICS_INSTALL_LINUX="brew install kics"
+TOOL_KICS_CATEGORY="iac"
+
+# Composer audit — PHP dependency audit (bundled with Composer)
+TOOL_COMPOSER_AUDIT_DOCKER=""
+TOOL_COMPOSER_AUDIT_INSTALL_MACOS="(bundled with Composer)"
+TOOL_COMPOSER_AUDIT_INSTALL_LINUX="(bundled with Composer)"
+TOOL_COMPOSER_AUDIT_CATEGORY="dependency"
+
+# dotnet audit — .NET dependency audit (bundled with .NET SDK)
+TOOL_DOTNET_AUDIT_DOCKER=""
+TOOL_DOTNET_AUDIT_INSTALL_MACOS="(bundled with .NET SDK)"
+TOOL_DOTNET_AUDIT_INSTALL_LINUX="(bundled with .NET SDK)"
+TOOL_DOTNET_AUDIT_CATEGORY="dependency"
+
+# SpotBugs — Java bytecode SAST
+TOOL_SPOTBUGS_DOCKER="ghcr.io/spotbugs/spotbugs:4.9.3"
+TOOL_SPOTBUGS_INSTALL_MACOS="brew install spotbugs"
+TOOL_SPOTBUGS_INSTALL_LINUX="brew install spotbugs"
+TOOL_SPOTBUGS_CATEGORY="sast"
+
+# cppcheck — C/C++ static analysis
+TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.17.1"
+TOOL_CPPCHECK_INSTALL_MACOS="brew install cppcheck"
+TOOL_CPPCHECK_INSTALL_LINUX="brew install cppcheck"
+TOOL_CPPCHECK_CATEGORY="sast"
+
+# SwiftLint — Swift linter/SAST
+TOOL_SWIFTLINT_DOCKER="ghcr.io/realm/swiftlint:0.58.0"
+TOOL_SWIFTLINT_INSTALL_MACOS="brew install swiftlint"
+TOOL_SWIFTLINT_INSTALL_LINUX="brew install swiftlint"
+TOOL_SWIFTLINT_CATEGORY="sast"
+
+# Sobelow — Elixir/Phoenix security scanner (requires mix)
+TOOL_SOBELOW_DOCKER=""
+TOOL_SOBELOW_INSTALL_MACOS="mix archive.install hex sobelow"
+TOOL_SOBELOW_INSTALL_LINUX="mix archive.install hex sobelow"
+TOOL_SOBELOW_CATEGORY="sast"
+
+# dart analyze — Dart/Flutter static analysis (bundled with Dart SDK)
+TOOL_DART_ANALYZE_DOCKER=""
+TOOL_DART_ANALYZE_INSTALL_MACOS="brew install dart"
+TOOL_DART_ANALYZE_INSTALL_LINUX="(bundled with Dart SDK)"
+TOOL_DART_ANALYZE_CATEGORY="sast"
+
 # ── Stack to tool mapping ─────────────────────────────────────────────
 # Returns tool names relevant for a given stack component
 # Usage: get_tools_for_stack <stack_component>
@@ -124,34 +184,49 @@ get_tools_for_stack() {
   local component="$1"
   case "$component" in
     javascript | typescript | nodejs)
-      echo "semgrep gitleaks trufflehog npm-audit eslint-security osv-scanner"
+      echo "semgrep gitleaks trufflehog npm-audit eslint-security osv-scanner bearer"
       ;;
     python)
-      echo "semgrep gitleaks trufflehog bandit pip-audit osv-scanner"
+      echo "semgrep gitleaks trufflehog bandit pip-audit osv-scanner bearer"
       ;;
     go)
-      echo "semgrep gitleaks trufflehog gosec govulncheck osv-scanner"
+      echo "semgrep gitleaks trufflehog gosec govulncheck osv-scanner bearer"
       ;;
     rust)
       echo "semgrep gitleaks trufflehog cargo-audit osv-scanner"
       ;;
     ruby)
-      echo "semgrep gitleaks trufflehog bundler-audit brakeman osv-scanner"
+      echo "semgrep gitleaks trufflehog bundler-audit brakeman osv-scanner bearer"
       ;;
     java | kotlin)
-      echo "semgrep gitleaks trufflehog trivy osv-scanner"
+      echo "semgrep gitleaks trufflehog spotbugs osv-scanner bearer"
       ;;
     php)
-      echo "semgrep gitleaks trufflehog phpstan osv-scanner"
+      echo "semgrep gitleaks trufflehog phpstan composer-audit osv-scanner bearer"
       ;;
     csharp | dotnet)
-      echo "semgrep gitleaks trufflehog osv-scanner"
+      echo "semgrep gitleaks trufflehog dotnet-audit osv-scanner bearer"
+      ;;
+    swift)
+      echo "semgrep gitleaks trufflehog swiftlint osv-scanner bearer"
+      ;;
+    cpp)
+      echo "semgrep gitleaks trufflehog cppcheck osv-scanner bearer"
+      ;;
+    elixir)
+      echo "semgrep gitleaks trufflehog sobelow osv-scanner bearer"
+      ;;
+    scala)
+      echo "semgrep gitleaks trufflehog spotbugs osv-scanner bearer"
+      ;;
+    dart)
+      echo "semgrep gitleaks trufflehog dart-analyze osv-scanner bearer"
       ;;
     docker)
-      echo "trivy hadolint"
+      echo "trivy hadolint grype"
       ;;
     terraform | cloudformation | kubernetes | iac)
-      echo "checkov trivy"
+      echo "checkov trivy kics"
       ;;
     *)
       echo "semgrep gitleaks trufflehog"
@@ -170,6 +245,10 @@ get_tool_binary() {
     eslint-security) echo "eslint" ;;
     osv-scanner) echo "osv-scanner" ;;
     phpstan) echo "phpstan" ;;
+    composer-audit) echo "composer" ;;
+    dotnet-audit) echo "dotnet" ;;
+    dart-analyze) echo "dart" ;;
+    sobelow) echo "mix" ;;
     *) echo "$tool" ;;
   esac
 }
@@ -205,7 +284,10 @@ get_tool_manifest_files() {
     cargo-audit) echo "Cargo.lock Cargo.toml" ;;
     bundler-audit) echo "Gemfile.lock Gemfile" ;;
     govulncheck) echo "go.mod go.sum" ;;
-    osv-scanner) echo "package-lock.json yarn.lock pnpm-lock.yaml bun.lockb bun.lock package.json requirements.txt pyproject.toml Pipfile.lock go.mod go.sum Cargo.lock Gemfile.lock composer.lock pom.xml build.gradle build.gradle.kts packages.config .csproj" ;;
+    osv-scanner) echo "package-lock.json yarn.lock pnpm-lock.yaml bun.lockb bun.lock package.json requirements.txt pyproject.toml Pipfile.lock go.mod go.sum Cargo.lock Gemfile.lock composer.lock pom.xml build.gradle build.gradle.kts packages.config .csproj pubspec.lock mix.lock Package.resolved build.sbt" ;;
+    composer-audit) echo "composer.json composer.lock" ;;
+    dotnet-audit) echo ".csproj packages.config .sln" ;;
+    spotbugs) echo "pom.xml build.gradle build.gradle.kts" ;;
     *) echo "" ;;
   esac
 }

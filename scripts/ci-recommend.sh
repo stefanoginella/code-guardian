@@ -250,6 +250,113 @@ THEOF
 
 PHPSTANEOF
           ;;
+        bearer)
+          cat <<'BEAREREOF'
+      # Data-flow SAST
+      - name: Bearer (data-flow SAST)
+        uses: bearer/bearer-action@v2
+        with:
+          format: json
+          output: bearer-results.json
+        continue-on-error: true
+
+BEAREREOF
+          ;;
+        grype)
+          cat <<'GRYPEEOF'
+      # Vulnerability scanning
+      - name: Grype (vulnerability scan)
+        uses: anchore/scan-action@v6
+        with:
+          path: '.'
+          fail-build: false
+          output-format: json
+
+GRYPEEOF
+          ;;
+        kics)
+          cat <<'KICSEOF'
+      # IaC scanning (KICS)
+      - name: KICS (IaC security)
+        uses: checkmarx/kics-github-action@v2
+        with:
+          path: '.'
+          output_formats: json
+          enable_comments: false
+        continue-on-error: true
+
+KICSEOF
+          ;;
+        composer-audit)
+          cat <<'COMPOSEREOF'
+      # PHP dependency audit
+      - name: Composer audit
+        run: composer audit --format=json || true
+        continue-on-error: true
+
+COMPOSEREOF
+          ;;
+        dotnet-audit)
+          cat <<'DOTNETEOF'
+      # .NET dependency audit
+      - name: dotnet audit
+        run: dotnet list package --vulnerable --format json || true
+        continue-on-error: true
+
+DOTNETEOF
+          ;;
+        spotbugs)
+          cat <<'SPOTBUGSEOF'
+      # Java bytecode SAST
+      - name: SpotBugs (Java SAST)
+        run: |
+          spotbugs -textui -xml -effort:max -low . || true
+        continue-on-error: true
+
+SPOTBUGSEOF
+          ;;
+        cppcheck)
+          cat <<'CPPCHECKEOF'
+      # C/C++ static analysis
+      - name: cppcheck (C/C++ SAST)
+        run: |
+          sudo apt-get install -y cppcheck
+          cppcheck --xml --enable=warning,portability --error-exitcode=0 . 2> cppcheck-results.xml || true
+        continue-on-error: true
+
+CPPCHECKEOF
+          ;;
+        swiftlint)
+          cat <<'SWIFTLINTEOF'
+      # Swift linting
+      - name: SwiftLint
+        run: |
+          brew install swiftlint
+          swiftlint lint --reporter json --quiet > swiftlint-results.json || true
+        continue-on-error: true
+
+SWIFTLINTEOF
+          ;;
+        sobelow)
+          cat <<'SOBELOWEOF'
+      # Elixir security scanning
+      - name: Sobelow (Elixir SAST)
+        run: |
+          mix archive.install hex sobelow --force
+          mix sobelow --format json --quiet > sobelow-results.json || true
+        continue-on-error: true
+
+SOBELOWEOF
+          ;;
+        dart-analyze)
+          cat <<'DARTEOF'
+      # Dart/Flutter static analysis
+      - name: dart analyze
+        run: dart analyze --format=json . > dart-analyze-results.json || true
+        continue-on-error: true
+
+DARTEOF
+          ;;
       esac
     done
     ;;
@@ -369,6 +476,159 @@ phpstan:
 
 GLPHPSTANEOF
           ;;
+        bearer)
+          cat <<'GLBEAREREOF'
+bearer:
+  stage: security
+  image: bearer/bearer:v1.47.3
+  script:
+    - bearer scan . --format json --quiet > bearer-results.json || true
+  artifacts:
+    paths:
+      - bearer-results.json
+    when: always
+  allow_failure: true
+
+GLBEAREREOF
+          ;;
+        grype)
+          cat <<'GLGRYPEEOF'
+grype:
+  stage: security
+  image: anchore/grype:v0.93.0
+  script:
+    - grype dir:. --output json --quiet > grype-results.json || true
+  artifacts:
+    paths:
+      - grype-results.json
+    when: always
+  allow_failure: true
+
+GLGRYPEEOF
+          ;;
+        kics)
+          cat <<'GLKICSEOF'
+kics:
+  stage: security
+  image: checkmarx/kics:v2.1.7
+  script:
+    - kics scan -p . --output-path /tmp/kics --report-formats json --no-progress || true
+    - cp /tmp/kics/results.json kics-results.json || true
+  artifacts:
+    paths:
+      - kics-results.json
+    when: always
+  allow_failure: true
+
+GLKICSEOF
+          ;;
+        composer-audit)
+          cat <<'GLCOMPOSEREOF'
+composer-audit:
+  stage: security
+  image: composer:latest
+  script:
+    - composer audit --format=json > composer-audit-results.json || true
+  artifacts:
+    paths:
+      - composer-audit-results.json
+    when: always
+  allow_failure: true
+
+GLCOMPOSEREOF
+          ;;
+        dotnet-audit)
+          cat <<'GLDOTNETEOF'
+dotnet-audit:
+  stage: security
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet list package --vulnerable --format json > dotnet-audit-results.json || true
+  artifacts:
+    paths:
+      - dotnet-audit-results.json
+    when: always
+  allow_failure: true
+
+GLDOTNETEOF
+          ;;
+        spotbugs)
+          cat <<'GLSPOTBUGSEOF'
+spotbugs:
+  stage: security
+  image: ghcr.io/spotbugs/spotbugs:4.9.3
+  script:
+    - spotbugs -textui -xml -effort:max -low . > spotbugs-results.xml || true
+  artifacts:
+    paths:
+      - spotbugs-results.xml
+    when: always
+  allow_failure: true
+
+GLSPOTBUGSEOF
+          ;;
+        cppcheck)
+          cat <<'GLCPPCHECKEOF'
+cppcheck:
+  stage: security
+  image: facthunder/cppcheck:2.17.1
+  script:
+    - cppcheck --xml --enable=warning,portability --error-exitcode=0 . 2> cppcheck-results.xml || true
+  artifacts:
+    paths:
+      - cppcheck-results.xml
+    when: always
+  allow_failure: true
+
+GLCPPCHECKEOF
+          ;;
+        swiftlint)
+          cat <<'GLSWIFTLINTEOF'
+swiftlint:
+  stage: security
+  image: ghcr.io/realm/swiftlint:0.58.0
+  script:
+    - swiftlint lint --reporter json --quiet > swiftlint-results.json || true
+  artifacts:
+    paths:
+      - swiftlint-results.json
+    when: always
+  allow_failure: true
+
+GLSWIFTLINTEOF
+          ;;
+        sobelow)
+          cat <<'GLSOBELOWEOF'
+sobelow:
+  stage: security
+  image: elixir:latest
+  script:
+    - mix local.hex --force
+    - mix archive.install hex sobelow --force
+    - mix sobelow --format json --quiet > sobelow-results.json || true
+  artifacts:
+    paths:
+      - sobelow-results.json
+    when: always
+  allow_failure: true
+
+GLSOBELOWEOF
+          ;;
+        dart-analyze)
+          cat <<'GLDARTEOF'
+dart-analyze:
+  stage: security
+  image: dart:stable
+  script:
+    - dart analyze --format=json . > dart-analyze-results.json || true
+  artifacts:
+    paths:
+      - dart-analyze-results.json
+    when: always
+  allow_failure: true
+
+GLDARTEOF
+          ;;
       esac
     done
     ;;
@@ -437,6 +697,56 @@ GENERICEOF
         phpstan)
           echo "# PHP static analysis"
           echo "phpstan analyse --error-format=json --no-progress --level=5 ."
+          echo ""
+          ;;
+        bearer)
+          echo "# Data-flow SAST"
+          echo "bearer scan . --format json --quiet"
+          echo ""
+          ;;
+        grype)
+          echo "# Vulnerability scanning (Grype)"
+          echo "grype dir:. --output json --quiet"
+          echo ""
+          ;;
+        kics)
+          echo "# IaC scanning (KICS)"
+          echo "kics scan -p . --output-path /tmp/kics --report-formats json --no-progress"
+          echo ""
+          ;;
+        composer-audit)
+          echo "# PHP dependency audit"
+          echo "composer audit --format=json"
+          echo ""
+          ;;
+        dotnet-audit)
+          echo "# .NET dependency audit"
+          echo "dotnet list package --vulnerable --format json"
+          echo ""
+          ;;
+        spotbugs)
+          echo "# Java bytecode SAST"
+          echo "spotbugs -textui -xml -effort:max -low ."
+          echo ""
+          ;;
+        cppcheck)
+          echo "# C/C++ static analysis"
+          echo "cppcheck --xml --enable=warning,portability --error-exitcode=0 ."
+          echo ""
+          ;;
+        swiftlint)
+          echo "# Swift linting"
+          echo "swiftlint lint --reporter json --quiet"
+          echo ""
+          ;;
+        sobelow)
+          echo "# Elixir security scanning"
+          echo "mix sobelow --format json --quiet"
+          echo ""
+          ;;
+        dart-analyze)
+          echo "# Dart/Flutter static analysis"
+          echo "dart analyze --format=json ."
           echo ""
           ;;
       esac

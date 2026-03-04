@@ -262,6 +262,12 @@ update_tool DOCKLE goodwithtech/dockle "v" "v" "bare_tarball"
 update_tool TRUFFLEHOG trufflesecurity/trufflehog "" "v" "gitlab"
 update_tool OSV_SCANNER google/osv-scanner "v" "v" "gitlab"
 update_tool PHPSTAN phpstan/phpstan "" "composer" "gitlab,2part_docker"
+update_tool BEARER bearer/bearer "v" "v" "gitlab"
+update_tool GRYPE anchore/grype "v" "v" "gitlab"
+update_tool KICS Checkmarx/kics "v" "v" "gitlab"
+update_tool SPOTBUGS spotbugs/spotbugs "" "" "gitlab"
+update_tool CPPCHECK facthunder/cppcheck "" "" "gitlab"
+update_tool SWIFTLINT realm/SwiftLint "" "" "gitlab"
 
 echo ""
 echo "── GitHub Actions SHAs ──"
@@ -278,6 +284,9 @@ update_action "bridgecrewio/checkov-action" "bridgecrewio/checkov-action" "v12"
 update_action "securego/gosec" "securego/gosec" "v2.24.0"
 update_action "google/osv-scanner-action/osv-scanner" "google/osv-scanner-action" "v2.3.3"
 update_action "trufflesecurity/trufflehog" "trufflesecurity/trufflehog" "v3.93.6"
+update_action "bearer/bearer-action" "bearer/bearer-action" "v2"
+update_action "anchore/scan-action" "anchore/scan-action" "v6"
+update_action "checkmarx/kics-github-action" "checkmarx/kics-github-action" "v2"
 
 # ── Section 6: Summary ─────────────────────────────────────────────
 

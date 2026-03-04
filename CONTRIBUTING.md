@@ -44,7 +44,7 @@ scripts/                    — Scanner wrappers and orchestration
   lib/                      — Shared utilities and tool registry
     common.sh
     tool-registry.sh
-  scanners/                 — 18 individual scanner wrappers
+  scanners/                 — 28 individual scanner wrappers
   detect-stack.sh
   check-tools.sh
   scan.sh
@@ -89,7 +89,7 @@ The test suite uses [bats-core](https://github.com/bats-core/bats-core) and inst
 bash tests/run-tests.sh
 ```
 
-Tests cover stack detection, config reading, cache I/O, report generation, and findings validation.
+Tests cover stack detection (JS, TS, Python, Go, Rust, Ruby, PHP, Docker, Terraform, Swift, C++, Elixir, Scala, Dart, and multi-stack), config reading, cache I/O, report generation, and findings validation.
 
 ## Linting
 
