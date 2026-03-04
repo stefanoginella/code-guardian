@@ -11,13 +11,16 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/bandit-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 # Check for Python files
 py_files_exist=false
@@ -53,15 +56,15 @@ fi
 DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 
 if cmd_exists bandit; then
-  bandit "${BANDIT_ARGS[@]}" > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+  bandit "${BANDIT_ARGS[@]}" >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   # Write args to a temp file to avoid shell quoting issues in sh -c
   ARGS_FILE=$(mktemp /tmp/cg-bandit-args-XXXXXX)
-  printf '%s\0' "${BANDIT_ARGS[@]}" > "$ARGS_FILE"
+  printf '%s\0' "${BANDIT_ARGS[@]}" >"$ARGS_FILE"
   docker run --rm -v "$(pwd):/src:ro" -v "$ARGS_FILE:/tmp/bandit-args:ro" -w /src \
     "$DOCKER_IMAGE" sh -c 'pip install -q bandit && xargs -0 bandit < /tmp/bandit-args' \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   rm -f "$ARGS_FILE"
 else
   log_skip_tool "Bandit"
@@ -82,7 +85,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[1]))
     for result in data.get('results', []):
         sev = result.get('issue_severity', 'MEDIUM').lower()
         finding = {
@@ -98,13 +101,13 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   fi
 fi
 
 rm -f "$RAW_OUTPUT"
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Bandit: found $count issue(s)"
 else

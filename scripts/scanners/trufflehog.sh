@@ -11,18 +11,21 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/trufflehog-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 log_step "Running TruffleHog (deep secret detection)..."
 
 RAW_OUTPUT=$(mktemp /tmp/cg-trufflehog-XXXXXX.json)
-> "$RAW_OUTPUT"
+: >"$RAW_OUTPUT"
 EXIT_CODE=0
 
 # Build exclude-paths file for trufflehog
@@ -33,7 +36,7 @@ DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 if cmd_exists trufflehog; then
   trufflehog filesystem --json --no-update \
     --exclude-paths "$EXCLUDE_FILE" . \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   docker run --rm --network none \
@@ -41,7 +44,7 @@ elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; th
     -w /workspace \
     "$DOCKER_IMAGE" filesystem --json --no-update \
     --exclude-paths /tmp/exclude-paths /workspace \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 else
   log_skip_tool "TruffleHog"
   rm -f "$RAW_OUTPUT"
@@ -62,7 +65,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 seen = set()
-with open('$RAW_OUTPUT') as f:
+with open(sys.argv[1]) as f:
     for line in f:
         line = line.strip()
         if not line:
@@ -99,7 +102,7 @@ with open('$RAW_OUTPUT') as f:
             print(json.dumps(finding))
         except (json.JSONDecodeError, KeyError):
             continue
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   fi
 fi
 
@@ -128,11 +131,11 @@ with open(sys.argv[2]) as f:
                 print(line)
         except json.JSONDecodeError:
             continue
-" "$SCOPE_FILE" "$FINDINGS_FILE" > "$FILTERED"
+" "$SCOPE_FILE" "$FINDINGS_FILE" >"$FILTERED"
   mv "$FILTERED" "$FINDINGS_FILE"
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "TruffleHog: found $count secret(s)!"
 else

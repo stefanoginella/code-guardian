@@ -24,20 +24,62 @@ REPORT_FILE_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --findings-file)          FINDINGS_FILE="$2"; shift 2 ;;
-    --scope)                  SCOPE="$2"; shift 2 ;;
-    --base-ref)               BASE_REF="$2"; shift 2 ;;
-    --scanners-run)           SCANNERS_RUN="$2"; shift 2 ;;
-    --skipped-scanners)       SKIPPED_SCANNERS="$2"; shift 2 ;;
-    --scope-skipped-scanners) SCOPE_SKIPPED_SCANNERS="$2"; shift 2 ;;
-    --failed-scanners)        FAILED_SCANNERS="$2"; shift 2 ;;
-    --summaries-json)         SUMMARIES_JSON="$2"; shift 2 ;;
-    --total)                  TOTAL="$2"; shift 2 ;;
-    --high)                   HIGH="$2"; shift 2 ;;
-    --medium)                 MEDIUM="$2"; shift 2 ;;
-    --low)                    LOW="$2"; shift 2 ;;
-    --timestamp)              TIMESTAMP="$2"; shift 2 ;;
-    --report-file)            REPORT_FILE_OVERRIDE="$2"; shift 2 ;;
+    --findings-file)
+      FINDINGS_FILE="$2"
+      shift 2
+      ;;
+    --scope)
+      SCOPE="$2"
+      shift 2
+      ;;
+    --base-ref)
+      BASE_REF="$2"
+      shift 2
+      ;;
+    --scanners-run)
+      SCANNERS_RUN="$2"
+      shift 2
+      ;;
+    --skipped-scanners)
+      SKIPPED_SCANNERS="$2"
+      shift 2
+      ;;
+    --scope-skipped-scanners)
+      SCOPE_SKIPPED_SCANNERS="$2"
+      shift 2
+      ;;
+    --failed-scanners)
+      FAILED_SCANNERS="$2"
+      shift 2
+      ;;
+    --summaries-json)
+      SUMMARIES_JSON="$2"
+      shift 2
+      ;;
+    --total)
+      TOTAL="$2"
+      shift 2
+      ;;
+    --high)
+      HIGH="$2"
+      shift 2
+      ;;
+    --medium)
+      MEDIUM="$2"
+      shift 2
+      ;;
+    --low)
+      LOW="$2"
+      shift 2
+      ;;
+    --timestamp)
+      TIMESTAMP="$2"
+      shift 2
+      ;;
+    --report-file)
+      REPORT_FILE_OVERRIDE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
@@ -65,7 +107,7 @@ install_cmds_json="{}"
 for tool_list_var in SKIPPED_SCANNERS FAILED_SCANNERS; do
   tool_list="${!tool_list_var}"
   [[ -z "$tool_list" ]] && continue
-  IFS=',' read -ra tools <<< "$tool_list"
+  IFS=',' read -ra tools <<<"$tool_list"
   for tool in "${tools[@]}"; do
     [[ -z "$tool" ]] && continue
     cmd=$(get_tool_install_cmd "$tool")
@@ -84,7 +126,7 @@ done
 python3 - "$FINDINGS_FILE" "$SCOPE" "$BASE_REF" "$SCANNERS_RUN" \
   "$SKIPPED_SCANNERS" "$SCOPE_SKIPPED_SCANNERS" "$FAILED_SCANNERS" \
   "$SUMMARIES_JSON" "$TOTAL" "$HIGH" "$MEDIUM" "$LOW" \
-  "$TIMESTAMP" "$install_cmds_json" "$REPORT_FILE" << 'PYEOF'
+  "$TIMESTAMP" "$install_cmds_json" "$REPORT_FILE" <<'PYEOF'
 import json, sys, os
 from datetime import datetime
 

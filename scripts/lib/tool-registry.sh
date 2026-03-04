@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Tool registry: maps stacks to tools, provides install commands and Docker images
+# shellcheck disable=SC2034  # TOOL_* variables are accessed dynamically via ${!var_name}
 set -euo pipefail
 
 _TOOL_REGISTRY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -122,7 +123,7 @@ TOOL_PHPSTAN_CATEGORY="sast"
 get_tools_for_stack() {
   local component="$1"
   case "$component" in
-    javascript|typescript|nodejs)
+    javascript | typescript | nodejs)
       echo "semgrep gitleaks trufflehog npm-audit eslint-security osv-scanner"
       ;;
     python)
@@ -137,19 +138,19 @@ get_tools_for_stack() {
     ruby)
       echo "semgrep gitleaks trufflehog bundler-audit brakeman osv-scanner"
       ;;
-    java|kotlin)
+    java | kotlin)
       echo "semgrep gitleaks trufflehog trivy osv-scanner"
       ;;
     php)
       echo "semgrep gitleaks trufflehog phpstan osv-scanner"
       ;;
-    csharp|dotnet)
+    csharp | dotnet)
       echo "semgrep gitleaks trufflehog osv-scanner"
       ;;
     docker)
       echo "trivy hadolint"
       ;;
-    terraform|cloudformation|kubernetes|iac)
+    terraform | cloudformation | kubernetes | iac)
       echo "checkov trivy"
       ;;
     *)
@@ -199,13 +200,13 @@ get_tool_install_cmd() {
 get_tool_manifest_files() {
   local tool="$1"
   case "$tool" in
-    npm-audit)      echo "package-lock.json yarn.lock pnpm-lock.yaml bun.lockb bun.lock package.json" ;;
-    pip-audit)      echo "requirements.txt pyproject.toml setup.py Pipfile Pipfile.lock" ;;
-    cargo-audit)    echo "Cargo.lock Cargo.toml" ;;
-    bundler-audit)  echo "Gemfile.lock Gemfile" ;;
-    govulncheck)    echo "go.mod go.sum" ;;
-    osv-scanner)    echo "package-lock.json yarn.lock pnpm-lock.yaml bun.lockb bun.lock package.json requirements.txt pyproject.toml Pipfile.lock go.mod go.sum Cargo.lock Gemfile.lock composer.lock pom.xml build.gradle build.gradle.kts packages.config .csproj" ;;
-    *)              echo "" ;;
+    npm-audit) echo "package-lock.json yarn.lock pnpm-lock.yaml bun.lockb bun.lock package.json" ;;
+    pip-audit) echo "requirements.txt pyproject.toml setup.py Pipfile Pipfile.lock" ;;
+    cargo-audit) echo "Cargo.lock Cargo.toml" ;;
+    bundler-audit) echo "Gemfile.lock Gemfile" ;;
+    govulncheck) echo "go.mod go.sum" ;;
+    osv-scanner) echo "package-lock.json yarn.lock pnpm-lock.yaml bun.lockb bun.lock package.json requirements.txt pyproject.toml Pipfile.lock go.mod go.sum Cargo.lock Gemfile.lock composer.lock pom.xml build.gradle build.gradle.kts packages.config .csproj" ;;
+    *) echo "" ;;
   esac
 }
 

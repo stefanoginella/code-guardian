@@ -13,14 +13,20 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --autofix) AUTOFIX=true; shift ;;
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --autofix)
+      AUTOFIX=true
+      shift
+      ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/eslint-security-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -125,7 +131,7 @@ for scan_dir in "${SCAN_DIRS[@]}"; do
     ESLINT_ARGS+=(".")
   fi
 
-  $ESLINT_BIN "${ESLINT_ARGS[@]}" > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+  $ESLINT_BIN "${ESLINT_ARGS[@]}" >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 
   # Detect tool failure: non-zero exit with no usable output
   if [[ $EXIT_CODE -ne 0 ]] && { [[ ! -f "$RAW_OUTPUT" ]] || [[ ! -s "$RAW_OUTPUT" ]]; }; then
@@ -139,9 +145,9 @@ for scan_dir in "${SCAN_DIRS[@]}"; do
     if cmd_exists python3; then
       python3 -c "
 import json, sys
-rel_prefix = '$REL_PREFIX'
+rel_prefix = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     for file_result in data:
         filepath = file_result.get('filePath', '')
         for msg in file_result.get('messages', []):
@@ -167,7 +173,7 @@ try:
             print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$REL_PREFIX" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -182,7 +188,7 @@ if [[ $SCANNED -eq 0 ]]; then
   exit 0
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "ESLint security: found $count issue(s)"
   $AUTOFIX && log_info "Auto-fix was applied where possible"

@@ -35,8 +35,8 @@ ext_exists() {
 # Helper: grep across all matching files found by find
 grep_in_files() {
   local pattern="$1" name_glob="$2" depth="${3:-3}"
-  find . -maxdepth "$depth" \( "${_PRUNE[@]}" \) -prune -o -name "$name_glob" -print0 2>/dev/null | \
-    xargs -0 grep -lq "$pattern" 2>/dev/null
+  find . -maxdepth "$depth" \( "${_PRUNE[@]}" \) -prune -o -name "$name_glob" -print0 2>/dev/null \
+    | xargs -0 grep -lq "$pattern" 2>/dev/null
 }
 
 # ── Language detection ────────────────────────────────────────────────
@@ -65,8 +65,8 @@ if ext_exists js || ext_exists ts || ext_exists jsx || ext_exists tsx || file_ex
 fi
 
 # Python
-if ext_exists py || file_exists_any requirements.txt || file_exists_any pyproject.toml || \
-   file_exists_any setup.py || file_exists_any Pipfile || file_exists_any uv.lock; then
+if ext_exists py || file_exists_any requirements.txt || file_exists_any pyproject.toml \
+  || file_exists_any setup.py || file_exists_any Pipfile || file_exists_any uv.lock; then
   languages+=("python")
   file_exists_any requirements.txt && package_managers+=("pip")
   file_exists_any Pipfile && package_managers+=("pipenv")
@@ -124,8 +124,8 @@ fi
 if file_exists_any Dockerfile || ext_exists dockerfile; then
   has_docker=true
 fi
-if file_exists_any docker-compose.yml || file_exists_any docker-compose.yaml || \
-   file_exists_any compose.yml || file_exists_any compose.yaml; then
+if file_exists_any docker-compose.yml || file_exists_any docker-compose.yaml \
+  || file_exists_any compose.yml || file_exists_any compose.yaml; then
   has_docker_compose=true
 fi
 
@@ -145,8 +145,8 @@ if find . -maxdepth 3 -name "*.tf" 2>/dev/null | grep -q .; then
   iac_tools+=("terraform")
 fi
 # CloudFormation: look for AWSTemplateFormatVersion in YAML/JSON
-if find . -maxdepth 3 \( -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) -not -path './.git/*' -print0 2>/dev/null | \
-   xargs -0 grep -lq "AWSTemplateFormatVersion" 2>/dev/null; then
+if find . -maxdepth 3 \( -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) -not -path './.git/*' -print0 2>/dev/null \
+  | xargs -0 grep -lq "AWSTemplateFormatVersion" 2>/dev/null; then
   iac_tools+=("cloudformation")
 fi
 # Helm: look for Chart.yaml specifically
@@ -154,8 +154,8 @@ if find . -maxdepth 3 -name "Chart.yaml" 2>/dev/null | grep -q .; then
   iac_tools+=("helm")
 fi
 # Kubernetes: look for k8s manifests (apiVersion + kind in same file, not in node_modules or .github)
-if find . -maxdepth 3 \( -name "*.yaml" -o -name "*.yml" \) -not -path './.git/*' -not -path './node_modules/*' -not -path './.github/*' -print0 2>/dev/null | \
-   xargs -0 grep -lZ "^apiVersion:" 2>/dev/null | xargs -0 grep -lq "^kind:" 2>/dev/null; then
+if find . -maxdepth 3 \( -name "*.yaml" -o -name "*.yml" \) -not -path './.git/*' -not -path './node_modules/*' -not -path './.github/*' -print0 2>/dev/null \
+  | xargs -0 grep -lZ "^apiVersion:" 2>/dev/null | xargs -0 grep -lq "^kind:" 2>/dev/null; then
   iac_tools+=("kubernetes")
 fi
 

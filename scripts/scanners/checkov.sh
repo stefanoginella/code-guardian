@@ -6,23 +6,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"
 
-AUTOFIX=false
 OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --autofix) AUTOFIX=true; shift ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/checkov-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 # Check if there are IaC files to scan
 has_iac=false
-find . -maxdepth 4 \( -name "*.tf" -o -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) -print0 2>/dev/null | \
-  xargs -0 grep -lq 'resource\|AWSTemplateFormatVersion\|apiVersion:' 2>/dev/null && has_iac=true
+find . -maxdepth 4 \( -name "*.tf" -o -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) -print0 2>/dev/null \
+  | xargs -0 grep -lq 'resource\|AWSTemplateFormatVersion\|apiVersion:' 2>/dev/null && has_iac=true
 
 if ! $has_iac; then
   log_info "No IaC files detected, skipping Checkov"
@@ -39,12 +37,12 @@ CHECKOV_ARGS=("-d" "." "--output" "json" "--quiet" "--compact")
 DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 
 if cmd_exists checkov; then
-  checkov "${CHECKOV_ARGS[@]}" > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+  checkov "${CHECKOV_ARGS[@]}" >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   docker run --rm --network none -v "$(pwd):/tf:ro" -w /tf \
     "$DOCKER_IMAGE" "${CHECKOV_ARGS[@]}" \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 else
   log_skip_tool "Checkov"
   rm -f "$RAW_OUTPUT"
@@ -64,7 +62,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[1]))
     # Checkov can return a list or dict
     checks = []
     if isinstance(data, list):
@@ -92,13 +90,13 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   fi
 fi
 
 rm -f "$RAW_OUTPUT"
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Checkov: found $count issue(s)"
 else

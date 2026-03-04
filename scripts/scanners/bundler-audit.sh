@@ -12,13 +12,16 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --autofix) AUTOFIX=true; shift ;;
+    --autofix)
+      AUTOFIX=true
+      shift
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/bundler-audit-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -62,9 +65,9 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
   EXIT_CODE=0
 
   if cmd_exists bundle-audit; then
-    bundle-audit check --format json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    bundle-audit check --format json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   elif cmd_exists bundler-audit; then
-    bundler-audit check --format json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    bundler-audit check --format json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   else
     log_warn "bundler-audit not available, skipping"
     rm -f "$RAW_OUTPUT"
@@ -84,9 +87,9 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
       LOCKFILE_PATH="${REL_PREFIX:+${REL_PREFIX}/}Gemfile.lock"
       python3 -c "
 import json, sys
-lockfile = '$LOCKFILE_PATH'
+lockfile = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     for result in data.get('results', []):
         adv = result.get('advisory', {})
         gem = result.get('gem', {})
@@ -107,7 +110,7 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$LOCKFILE_PATH" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -122,7 +125,7 @@ if [[ $AUDITED -eq 0 ]]; then
   exit 0
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "bundler-audit: found $count vulnerability(s)"
 else

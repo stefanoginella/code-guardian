@@ -1,0 +1,52 @@
+name: Lint & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: sudo apt-get install -y shellcheck
+      - name: Run ShellCheck
+        run: |
+          shellcheck --severity=warning --shell=bash \
+            scripts/lib/*.sh \
+            scripts/*.sh \
+            scripts/scanners/*.sh \
+            build/*.sh \
+            hooks/scripts/*.sh
+
+  shfmt:
+    name: shfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shfmt
+        run: |
+          SHFMT_VERSION=3.12.0
+          curl -sLo /usr/local/bin/shfmt \
+            "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64"
+          chmod +x /usr/local/bin/shfmt
+      - name: Check formatting
+        run: |
+          shfmt -d -i 2 -ci -bn \
+            scripts/lib/*.sh \
+            scripts/*.sh \
+            scripts/scanners/*.sh \
+            build/*.sh \
+            hooks/scripts/*.sh
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: bash tests/run-tests.sh

@@ -13,14 +13,20 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --autofix) AUTOFIX=true; shift ;;
-    --pm) FORCE_PM="$2"; shift 2 ;;
+    --autofix)
+      AUTOFIX=true
+      shift
+      ;;
+    --pm)
+      FORCE_PM="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/npm-audit-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -58,10 +64,14 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
   # Detect package manager for this directory
   PM="$FORCE_PM"
   if [[ -z "$PM" ]]; then
-    if [[ -f pnpm-lock.yaml ]]; then PM="pnpm"
-    elif [[ -f yarn.lock ]]; then PM="yarn"
-    elif [[ -f bun.lockb ]] || [[ -f bun.lock ]]; then PM="bun"
-    elif [[ -f package-lock.json ]] || [[ -f package.json ]]; then PM="npm"
+    if [[ -f pnpm-lock.yaml ]]; then
+      PM="pnpm"
+    elif [[ -f yarn.lock ]]; then
+      PM="yarn"
+    elif [[ -f bun.lockb ]] || [[ -f bun.lock ]]; then
+      PM="bun"
+    elif [[ -f package-lock.json ]] || [[ -f package.json ]]; then
+      PM="npm"
     fi
   fi
 
@@ -88,17 +98,17 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
         npm audit fix --force 2>/dev/null || true
         log_info "Ran npm audit fix --force"
       fi
-      npm audit --json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+      npm audit --json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
       ;;
     yarn)
-      yarn audit --json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+      yarn audit --json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
       ;;
     pnpm)
-      pnpm audit --json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+      pnpm audit --json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
       ;;
     bun)
       # Bun doesn't have built-in audit; use npm audit if available
-      npm audit --json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+      npm audit --json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
       ;;
   esac
 
@@ -115,9 +125,9 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
       MANIFEST_PATH="${REL_PREFIX:+${REL_PREFIX}/}package.json"
       python3 -c "
 import json, sys
-manifest = '$MANIFEST_PATH'
+manifest = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     vulns = data.get('vulnerabilities', {})
     for name, vuln in vulns.items():
         sev_map = {'critical': 'high', 'high': 'high', 'moderate': 'medium', 'low': 'low', 'info': 'info'}
@@ -136,7 +146,7 @@ try:
 except Exception as e:
     # yarn audit uses a different JSON format (one JSON object per line)
     try:
-        with open('$RAW_OUTPUT') as f:
+        with open(sys.argv[2]) as f:
             for line in f:
                 line = line.strip()
                 if not line: continue
@@ -157,7 +167,7 @@ except Exception as e:
                     print(json.dumps(finding))
     except Exception:
         pass
-" >> "$FINDINGS_FILE"
+" "$MANIFEST_PATH" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -172,7 +182,7 @@ if [[ $AUDITED -eq 0 ]]; then
   exit 0
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "npm audit: found $count vulnerability(s)"
   $AUTOFIX && log_info "Auto-fix was applied where possible"

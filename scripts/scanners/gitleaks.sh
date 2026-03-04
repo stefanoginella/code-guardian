@@ -11,13 +11,16 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/gitleaks-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 log_step "Running Gitleaks (secret detection)..."
 
@@ -40,7 +43,7 @@ GITLEAKS_CONFIG=$(mktemp /tmp/cg-gitleaks-config-XXXXXX.toml)
     first=false
   done
   printf '\n]\n'
-} > "$GITLEAKS_CONFIG"
+} >"$GITLEAKS_CONFIG"
 
 GITLEAKS_ARGS=("detect" "--source" "." "--report-format" "json" "--report-path" "$RAW_OUTPUT" "--no-banner" "--config" "$GITLEAKS_CONFIG")
 
@@ -82,7 +85,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[1]))
     if isinstance(data, list):
         for leak in data:
             finding = {
@@ -98,7 +101,7 @@ try:
             print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   fi
 fi
 
@@ -128,11 +131,11 @@ with open(sys.argv[2]) as f:
                 print(line)
         except json.JSONDecodeError:
             continue
-" "$SCOPE_FILE" "$FINDINGS_FILE" > "$FILTERED"
+" "$SCOPE_FILE" "$FINDINGS_FILE" >"$FILTERED"
   mv "$FILTERED" "$FINDINGS_FILE"
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Gitleaks: found $count secret(s)!"
 else

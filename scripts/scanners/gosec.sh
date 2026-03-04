@@ -12,13 +12,16 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/gosec-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -81,9 +84,9 @@ for scan_dir in "${SCAN_DIRS[@]}"; do
     if cmd_exists python3; then
       python3 -c "
 import json, sys
-rel_prefix = '$REL_PREFIX'
+rel_prefix = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     for issue in data.get('Issues', []):
         sev = issue.get('severity', 'MEDIUM').lower()
         fpath = issue.get('file', '')
@@ -103,7 +106,7 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$REL_PREFIX" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -141,11 +144,11 @@ with open(sys.argv[2]) as f:
                 print(line)
         except json.JSONDecodeError:
             continue
-" "$SCOPE_FILE" "$FINDINGS_FILE" > "$FILTERED"
+" "$SCOPE_FILE" "$FINDINGS_FILE" >"$FILTERED"
   mv "$FILTERED" "$FINDINGS_FILE"
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "gosec: found $count issue(s)"
 else

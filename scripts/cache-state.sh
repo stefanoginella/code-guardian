@@ -18,7 +18,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 
 CACHE_FILE=".claude/code-guardian-cache.json"
 CACHE_VERSION=1
-DEFAULT_MAX_AGE=86400  # 24 hours
+DEFAULT_MAX_AGE=86400 # 24 hours
 
 # ── Argument parsing ─────────────────────────────────────────────────
 
@@ -29,12 +29,30 @@ max_age="$DEFAULT_MAX_AGE"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --write)      mode="write"; shift ;;
-    --read)       mode="read"; shift ;;
-    --check)      mode="check"; shift ;;
-    --stack-file) stack_file="$2"; shift 2 ;;
-    --tools-file) tools_file="$2"; shift 2 ;;
-    --max-age)    max_age="$2"; shift 2 ;;
+    --write)
+      mode="write"
+      shift
+      ;;
+    --read)
+      mode="read"
+      shift
+      ;;
+    --check)
+      mode="check"
+      shift
+      ;;
+    --stack-file)
+      stack_file="$2"
+      shift 2
+      ;;
+    --tools-file)
+      tools_file="$2"
+      shift 2
+      ;;
+    --max-age)
+      max_age="$2"
+      shift 2
+      ;;
     *)
       log_error "Unknown argument: $1"
       exit 1
@@ -85,7 +103,7 @@ cache = {
 
 json.dump(cache, sys.stdout, indent=2)
 print()
-" "$stack_file" "$tools_file" "$CACHE_VERSION" > "$tmpfile"
+" "$stack_file" "$tools_file" "$CACHE_VERSION" >"$tmpfile"
 
   mv "$tmpfile" "$CACHE_FILE"
   log_ok "Cache written to $CACHE_FILE"
@@ -94,7 +112,7 @@ print()
 # ── Read / Check mode ───────────────────────────────────────────────
 
 do_read() {
-  local output="${1:-true}"  # true = print JSON, false = exit code only
+  local output="${1:-true}" # true = print JSON, false = exit code only
 
   # Existence check
   if [[ ! -f "$CACHE_FILE" ]]; then
@@ -152,7 +170,7 @@ print('fresh')
       log_warn "Cache is stale (older than ${max_age}s)"
       exit 2
       ;;
-    invalid|*)
+    invalid | *)
       log_info "Cache is invalid or path mismatch"
       exit 1
       ;;
@@ -163,6 +181,6 @@ print('fresh')
 
 case "$mode" in
   write) do_write ;;
-  read)  do_read true ;;
+  read) do_read true ;;
   check) do_read false ;;
 esac

@@ -10,7 +10,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 FINDINGS_FILE="${OUTPUT_DIR}/osv-scanner-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 log_step "Running OSV-Scanner (universal dependency vulnerabilities)..."
 
@@ -21,12 +21,12 @@ DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 
 if cmd_exists osv-scanner; then
   osv-scanner --format json -r . \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   docker run --rm --network none -v "$(pwd):/workspace:ro" -w /workspace \
     "$DOCKER_IMAGE" --format json -r /workspace \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 else
   log_skip_tool "OSV-Scanner"
   rm -f "$RAW_OUTPUT"
@@ -47,7 +47,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[1]))
     results = data.get('results', [])
     for result in results:
         source_path = result.get('source', {}).get('path', '')
@@ -108,13 +108,13 @@ try:
                 print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   fi
 fi
 
 rm -f "$RAW_OUTPUT"
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "OSV-Scanner: found $count vulnerability(s)"
 else

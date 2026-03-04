@@ -109,9 +109,9 @@ for tool in "${needed_tools[@]}"; do
   tool_details+="$detail"
 
   case "$status" in
-    local|docker)        available_tools+=("$tool") ;;
-    docker-available)    docker_available_tools+=("$tool") ;;
-    unavailable)         unavailable_tools+=("$tool") ;;
+    local | docker) available_tools+=("$tool") ;;
+    docker-available) docker_available_tools+=("$tool") ;;
+    unavailable) unavailable_tools+=("$tool") ;;
   esac
 done
 
@@ -122,7 +122,7 @@ echo "" >&2
 for tool in "${needed_tools[@]}"; do
   status=$(check_tool_availability "$tool")
   case "$status" in
-    local)  log_ok "$tool — available locally" ;;
+    local) log_ok "$tool — available locally" ;;
     docker) log_ok "$tool — available via Docker (fallback enabled)" ;;
     docker-available)
       install_cmd=$(get_tool_install_cmd "$tool")
@@ -143,7 +143,10 @@ echo "" >&2
 # Output JSON
 json_name_array() {
   local arr=("$@")
-  if [[ ${#arr[@]} -eq 0 ]]; then echo "[]"; return; fi
+  if [[ ${#arr[@]} -eq 0 ]]; then
+    echo "[]"
+    return
+  fi
   local out="["
   for i in "${!arr[@]}"; do
     [[ $i -gt 0 ]] && out+=","
@@ -158,7 +161,7 @@ cat <<EOF
   "available": $(json_name_array "${available_tools[@]+"${available_tools[@]}"}"),
   "dockerAvailable": $(json_name_array "${docker_available_tools[@]+"${docker_available_tools[@]}"}"),
   "unavailable": $(json_name_array "${unavailable_tools[@]+"${unavailable_tools[@]}"}"),
-  "dockerFallback": $( [[ "$CG_DOCKER_FALLBACK" == "1" ]] && echo "true" || echo "false"),
+  "dockerFallback": $([[ "$CG_DOCKER_FALLBACK" == "1" ]] && echo "true" || echo "false"),
   "totalNeeded": ${#needed_tools[@]},
   "totalAvailable": ${#available_tools[@]},
   "totalDockerAvailable": ${#docker_available_tools[@]},

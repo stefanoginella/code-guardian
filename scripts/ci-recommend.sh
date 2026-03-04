@@ -12,8 +12,14 @@ CI_SYSTEM=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --stack-json) STACK_JSON="$2"; shift 2 ;;
-    --ci-system) CI_SYSTEM="$2"; shift 2 ;;
+    --stack-json)
+      STACK_JSON="$2"
+      shift 2
+      ;;
+    --ci-system)
+      CI_SYSTEM="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
@@ -37,7 +43,12 @@ print(str(d.get('docker', False)).lower())
 print(json.dumps(d.get('ciSystems', [])))
 print(json.dumps(d.get('iacTools', [])))
 " "$STACK_JSON" 2>/dev/null || printf '[]\nfalse\n[]\n[]\n')
-{ IFS= read -r languages; IFS= read -r has_docker; IFS= read -r ci_systems; IFS= read -r iac_tools; } <<< "$_stack_fields"
+{
+  IFS= read -r languages
+  IFS= read -r has_docker
+  IFS= read -r ci_systems
+  IFS= read -r iac_tools
+} <<<"$_stack_fields"
 
 # Auto-detect CI if not specified
 if [[ -z "$CI_SYSTEM" ]]; then
@@ -65,13 +76,15 @@ done < <(parse_json_array "$languages")
 
 if [[ "$has_docker" == "true" ]]; then
   for tool in $(get_tools_for_stack "docker"); do
-    found=false; for e in "${tools[@]+"${tools[@]}"}"; do [[ "$e" == "$tool" ]] && found=true && break; done
+    found=false
+    for e in "${tools[@]+"${tools[@]}"}"; do [[ "$e" == "$tool" ]] && found=true && break; done
     $found || tools+=("$tool")
   done
 fi
 if echo "$iac_tools" | grep -q '[a-z]'; then
   for tool in $(get_tools_for_stack "iac"); do
-    found=false; for e in "${tools[@]+"${tools[@]}"}"; do [[ "$e" == "$tool" ]] && found=true && break; done
+    found=false
+    for e in "${tools[@]+"${tools[@]}"}"; do [[ "$e" == "$tool" ]] && found=true && break; done
     $found || tools+=("$tool")
   done
 fi
@@ -381,15 +394,51 @@ GENERICEOF
 
     for tool in "${tools[@]}"; do
       case "$tool" in
-        hadolint) echo "# Dockerfile linting"; echo "hadolint Dockerfile"; echo "" ;;
-        checkov) echo "# IaC scanning"; echo "checkov -d . --output json --quiet"; echo "" ;;
-        npm-audit) echo "# JS dependency audit"; echo "npm audit --audit-level=high"; echo "" ;;
-        pip-audit) echo "# Python dependency audit"; echo "pip-audit -r requirements.txt"; echo "" ;;
-        bandit) echo "# Python SAST"; echo "bandit -r . -f json"; echo "" ;;
-        gosec) echo "# Go SAST"; echo "gosec -fmt=json ./..."; echo "" ;;
-        osv-scanner) echo "# Universal dependency audit"; echo "osv-scanner --format json -r ."; echo "" ;;
-        trufflehog) echo "# Deep secret detection"; echo "trufflehog filesystem --json --no-update ."; echo "" ;;
-        phpstan) echo "# PHP static analysis"; echo "phpstan analyse --error-format=json --no-progress --level=5 ."; echo "" ;;
+        hadolint)
+          echo "# Dockerfile linting"
+          echo "hadolint Dockerfile"
+          echo ""
+          ;;
+        checkov)
+          echo "# IaC scanning"
+          echo "checkov -d . --output json --quiet"
+          echo ""
+          ;;
+        npm-audit)
+          echo "# JS dependency audit"
+          echo "npm audit --audit-level=high"
+          echo ""
+          ;;
+        pip-audit)
+          echo "# Python dependency audit"
+          echo "pip-audit -r requirements.txt"
+          echo ""
+          ;;
+        bandit)
+          echo "# Python SAST"
+          echo "bandit -r . -f json"
+          echo ""
+          ;;
+        gosec)
+          echo "# Go SAST"
+          echo "gosec -fmt=json ./..."
+          echo ""
+          ;;
+        osv-scanner)
+          echo "# Universal dependency audit"
+          echo "osv-scanner --format json -r ."
+          echo ""
+          ;;
+        trufflehog)
+          echo "# Deep secret detection"
+          echo "trufflehog filesystem --json --no-update ."
+          echo ""
+          ;;
+        phpstan)
+          echo "# PHP static analysis"
+          echo "phpstan analyse --error-format=json --no-progress --level=5 ."
+          echo ""
+          ;;
       esac
     done
     ;;

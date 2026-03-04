@@ -13,15 +13,24 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --mode) MODE="$2"; shift 2 ;;
-    --target) TARGET="$2"; shift 2 ;;
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --mode)
+      MODE="$2"
+      shift 2
+      ;;
+    --target)
+      TARGET="$2"
+      shift 2
+      ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/trivy-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 log_step "Running Trivy ($MODE mode)..."
 
@@ -53,7 +62,7 @@ esac
 DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 
 if cmd_exists trivy; then
-  trivy "${TRIVY_ARGS[@]}" > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+  trivy "${TRIVY_ARGS[@]}" >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   docker_run_args=("--rm" "-v" "$(pwd):/workspace:ro" "-w" "/workspace")
@@ -63,7 +72,7 @@ elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; th
   docker_run_args+=("-v" "${HOME}/.cache/trivy:/root/.cache/")
 
   docker run "${docker_run_args[@]}" "$DOCKER_IMAGE" "${TRIVY_ARGS[@]}" \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 else
   log_skip_tool "Trivy"
   rm -f "$RAW_OUTPUT"
@@ -84,7 +93,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[1]))
     results = data.get('Results', [])
     for result in results:
         target = result.get('Target', '')
@@ -133,7 +142,7 @@ try:
             print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   fi
 fi
 
@@ -162,11 +171,11 @@ with open(sys.argv[2]) as f:
                 print(line)
         except json.JSONDecodeError:
             continue
-" "$SCOPE_FILE" "$FINDINGS_FILE" > "$FILTERED"
+" "$SCOPE_FILE" "$FINDINGS_FILE" >"$FILTERED"
   mv "$FILTERED" "$FINDINGS_FILE"
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Trivy ($MODE): found $count issue(s)"
 else

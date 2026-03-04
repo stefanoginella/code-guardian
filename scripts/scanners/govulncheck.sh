@@ -10,7 +10,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 FINDINGS_FILE="${OUTPUT_DIR}/govulncheck-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -45,7 +45,7 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
   EXIT_CODE=0
 
   if cmd_exists govulncheck; then
-    govulncheck -json ./... > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    govulncheck -json ./... >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   else
     log_warn "govulncheck not available, skipping"
     rm -f "$RAW_OUTPUT"
@@ -65,11 +65,11 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
       GOMOD_PATH="${REL_PREFIX:+${REL_PREFIX}/}go.mod"
       python3 -c "
 import json, sys
-gomod = '$GOMOD_PATH'
+gomod = sys.argv[1]
 try:
     osv_entries = {}  # vuln_id -> osv entry data
     finding_ids = set()  # vuln IDs confirmed as actually called
-    with open('$RAW_OUTPUT') as f:
+    with open(sys.argv[2]) as f:
         for line in f:
             line = line.strip()
             if not line: continue
@@ -109,7 +109,7 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$GOMOD_PATH" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -124,7 +124,7 @@ if [[ $AUDITED -eq 0 ]]; then
   exit 0
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "govulncheck: found $count vulnerability(s)"
 else

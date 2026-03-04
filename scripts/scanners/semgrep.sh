@@ -12,14 +12,20 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --autofix) AUTOFIX=true; shift ;;
-    --scope-file) SCOPE_FILE="$2"; shift 2 ;;
+    --autofix)
+      AUTOFIX=true
+      shift
+      ;;
+    --scope-file)
+      SCOPE_FILE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/semgrep-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 log_step "Running Semgrep (SAST)..."
 
@@ -31,7 +37,7 @@ $AUTOFIX && SEMGREP_ARGS+=("--autofix")
 if [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]] && [[ -s "$SCOPE_FILE" ]]; then
   while IFS= read -r f; do
     [[ -n "$f" ]] && SEMGREP_ARGS+=("--include" "$f")
-  done < "$SCOPE_FILE"
+  done <"$SCOPE_FILE"
 fi
 
 # Run semgrep
@@ -41,14 +47,14 @@ EXIT_CODE=0
 DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 
 if cmd_exists semgrep; then
-  semgrep "${SEMGREP_ARGS[@]}" . > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+  semgrep "${SEMGREP_ARGS[@]}" . >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   mount_flag=":ro"
   $AUTOFIX && mount_flag=""
   docker run --rm -v "$(pwd):/src${mount_flag}" -w /src \
     "$DOCKER_IMAGE" semgrep "${SEMGREP_ARGS[@]}" /src \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 else
   log_skip_tool "Semgrep"
   rm -f "$RAW_OUTPUT"
@@ -70,7 +76,7 @@ if [[ -f "$RAW_OUTPUT" ]] && [[ -s "$RAW_OUTPUT" ]]; then
     python3 -c "
 import json, sys
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[1]))
     results = data.get('results', [])
     for r in results:
         severity_map = {'ERROR': 'high', 'WARNING': 'medium', 'INFO': 'low'}
@@ -88,7 +94,7 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" >"$FINDINGS_FILE"
   elif cmd_exists jq; then
     jq -c '.results[] | {
       tool: "semgrep",
@@ -99,14 +105,14 @@ except Exception as e:
       line: .start.line,
       autoFixable: ((.extra.fix // "") != ""),
       category: "sast"
-    }' "$RAW_OUTPUT" > "$FINDINGS_FILE" 2>/dev/null || true
+    }' "$RAW_OUTPUT" "$RAW_OUTPUT" >"$FINDINGS_FILE" 2>/dev/null || true
   fi
 fi
 
 rm -f "$RAW_OUTPUT"
 
 # Count findings
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Semgrep: found $count issue(s)"
   $AUTOFIX && log_info "Auto-fix was applied where possible"

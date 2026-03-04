@@ -10,7 +10,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 FINDINGS_FILE="${OUTPUT_DIR}/brakeman-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -48,12 +48,12 @@ for scan_dir in "${SCAN_DIRS[@]}"; do
   EXIT_CODE=0
 
   if cmd_exists brakeman; then
-    brakeman --format json --quiet --no-pager > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    brakeman --format json --quiet --no-pager >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; then
     log_info "Using Docker image: $DOCKER_IMAGE"
     docker run --rm --network none -v "$(pwd):/code:ro" \
       "$DOCKER_IMAGE" --format json --quiet --no-pager /code \
-      > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+      >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   else
     log_skip_tool "Brakeman"
     rm -f "$RAW_OUTPUT"
@@ -72,9 +72,9 @@ for scan_dir in "${SCAN_DIRS[@]}"; do
     if cmd_exists python3; then
       python3 -c "
 import json, sys
-rel_prefix = '$REL_PREFIX'
+rel_prefix = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     for warning in data.get('warnings', []):
         conf_map = {'High': 'high', 'Medium': 'medium', 'Weak': 'low'}
         sev = conf_map.get(warning.get('confidence', 'Medium'), 'medium')
@@ -94,7 +94,7 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$REL_PREFIX" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -109,7 +109,7 @@ if [[ $SCANNED -eq 0 ]]; then
   exit 0
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Brakeman: found $count issue(s)"
 else

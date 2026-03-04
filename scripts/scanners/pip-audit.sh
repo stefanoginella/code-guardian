@@ -12,13 +12,16 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --autofix) AUTOFIX=true; shift ;;
+    --autofix)
+      AUTOFIX=true
+      shift
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/pip-audit-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -111,9 +114,9 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
       fi
       python3 -c "
 import json, sys
-manifest = '$MANIFEST_PATH'
+manifest = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     deps = data.get('dependencies', [])
     for dep in deps:
         for vuln in dep.get('vulns', []):
@@ -130,7 +133,7 @@ try:
             print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$MANIFEST_PATH" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -139,7 +142,7 @@ done
 
 cd "$PROJECT_ROOT"
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "pip-audit: found $count vulnerability(s)"
   $AUTOFIX && log_info "Auto-fix was applied where possible"

@@ -41,7 +41,7 @@ gh_api() {
   curl -sfL "${headers[@]}" "$url"
 }
 
-log_info()  { printf '  %-14s %s\n' "$1" "$2"; }
+log_info() { printf '  %-14s %s\n' "$1" "$2"; }
 log_change() { printf '  %-14s %s → %s\n' "$1" "$2" "$3"; }
 
 # ── Section 2: GitHub API helpers ───────────────────────────────────
@@ -97,7 +97,7 @@ update_tool() {
   [[ "$flags" == *bare_tarball* ]] && bare_tarball=true
   [[ "$flags" == *2part_docker* ]] && two_part_docker=true
 
-  local latest_tag latest_bare current_docker current_bare
+  local latest_tag latest_bare current_bare
   latest_tag=$(get_latest_release "$repo") || true
   if [[ -z "$latest_tag" ]]; then
     ERRORS+=("${key}: failed to fetch latest release from ${repo}")
@@ -168,7 +168,7 @@ update_tool() {
   # ── Update install URL in tool-registry.sh ──
   local install_var="TOOL_${key}_INSTALL_LINUX"
   case "$install_prefix" in
-    pip|gem|composer)
+    pip | gem | composer)
       # Package manager install — no version in the command
       ;;
     *)
@@ -251,33 +251,33 @@ echo "── Docker images & install URLs ──"
 echo ""
 
 #              KEY              REPO                              DOCKER_PFX  INSTALL_PFX  FLAGS
-update_tool    SEMGREP          semgrep/semgrep                   ""          "pip"        "gitlab"
-update_tool    TRIVY            aquasecurity/trivy                ""          "v"          "gitlab"
-update_tool    GITLEAKS         gitleaks/gitleaks                 "v"         "v"          "gitlab,bare_tarball"
-update_tool    HADOLINT         hadolint/hadolint                 "v"         "v"          ""
-update_tool    CHECKOV          bridgecrewio/checkov              ""          "pip"        "gitlab"
-update_tool    GOSEC            securego/gosec                    "v"         "v"          ""
-update_tool    BRAKEMAN         presidentbeef/brakeman            "v"         "gem"        ""
-update_tool    DOCKLE           goodwithtech/dockle               "v"         "v"          "bare_tarball"
-update_tool    TRUFFLEHOG       trufflesecurity/trufflehog        ""          "v"          "gitlab"
-update_tool    OSV_SCANNER      google/osv-scanner                "v"         "v"          "gitlab"
-update_tool    PHPSTAN          phpstan/phpstan                   ""          "composer"   "gitlab,2part_docker"
+update_tool SEMGREP semgrep/semgrep "" "pip" "gitlab"
+update_tool TRIVY aquasecurity/trivy "" "v" "gitlab"
+update_tool GITLEAKS gitleaks/gitleaks "v" "v" "gitlab,bare_tarball"
+update_tool HADOLINT hadolint/hadolint "v" "v" ""
+update_tool CHECKOV bridgecrewio/checkov "" "pip" "gitlab"
+update_tool GOSEC securego/gosec "v" "v" ""
+update_tool BRAKEMAN presidentbeef/brakeman "v" "gem" ""
+update_tool DOCKLE goodwithtech/dockle "v" "v" "bare_tarball"
+update_tool TRUFFLEHOG trufflesecurity/trufflehog "" "v" "gitlab"
+update_tool OSV_SCANNER google/osv-scanner "v" "v" "gitlab"
+update_tool PHPSTAN phpstan/phpstan "" "composer" "gitlab,2part_docker"
 
 echo ""
 echo "── GitHub Actions SHAs ──"
 echo ""
 
 #                ACTION_PATH                                              REPO                              TAG
-update_action    "actions/checkout"                                       "actions/checkout"                 "v4"
-update_action    "gitleaks/gitleaks-action"                               "gitleaks/gitleaks-action"         "v2"
-update_action    "semgrep/semgrep-action"                                 "semgrep/semgrep-action"           "v1"
-update_action    "aquasecurity/trivy-action"                              "aquasecurity/trivy-action"        "0.34.1"
-update_action    "github/codeql-action/upload-sarif"                     "github/codeql-action"             "v3"
-update_action    "hadolint/hadolint-action"                               "hadolint/hadolint-action"         "v3.1.0"
-update_action    "bridgecrewio/checkov-action"                            "bridgecrewio/checkov-action"      "v12"
-update_action    "securego/gosec"                                         "securego/gosec"                   "v2.24.0"
-update_action    "google/osv-scanner-action/osv-scanner"                  "google/osv-scanner-action"        "v2.3.3"
-update_action    "trufflesecurity/trufflehog"                             "trufflesecurity/trufflehog"       "v3.93.6"
+update_action "actions/checkout" "actions/checkout" "v4"
+update_action "gitleaks/gitleaks-action" "gitleaks/gitleaks-action" "v2"
+update_action "semgrep/semgrep-action" "semgrep/semgrep-action" "v1"
+update_action "aquasecurity/trivy-action" "aquasecurity/trivy-action" "0.34.1"
+update_action "github/codeql-action/upload-sarif" "github/codeql-action" "v3"
+update_action "hadolint/hadolint-action" "hadolint/hadolint-action" "v3.1.0"
+update_action "bridgecrewio/checkov-action" "bridgecrewio/checkov-action" "v12"
+update_action "securego/gosec" "securego/gosec" "v2.24.0"
+update_action "google/osv-scanner-action/osv-scanner" "google/osv-scanner-action" "v2.3.3"
+update_action "trufflesecurity/trufflehog" "trufflesecurity/trufflehog" "v3.93.6"
 
 # ── Section 6: Summary ─────────────────────────────────────────────
 
@@ -304,7 +304,7 @@ if [[ ${#CHANGES[@]} -gt 0 ]]; then
   echo ""
   echo "Changes (${#CHANGES[@]}):"
   for change in "${CHANGES[@]}"; do
-    IFS='|' read -r name old new <<< "$change"
+    IFS='|' read -r name old new <<<"$change"
     printf '  %-40s %s → %s\n' "$name" "$old" "$new"
   done
 

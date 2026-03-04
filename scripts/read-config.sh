@@ -19,8 +19,15 @@ mode=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --get) key="$2"; mode="get"; shift 2 ;;
-    --dump) mode="dump"; shift ;;
+    --get)
+      key="$2"
+      mode="get"
+      shift 2
+      ;;
+    --dump)
+      mode="dump"
+      shift
+      ;;
     *) shift ;;
   esac
 done

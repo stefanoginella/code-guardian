@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # SessionStart hook: plugin startup message.
 #
 # Outputs a systemMessage with plugin status and a link to the README.

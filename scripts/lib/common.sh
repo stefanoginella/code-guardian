@@ -15,11 +15,11 @@ else
   RED='' YELLOW='' GREEN='' BLUE='' CYAN='' BOLD='' RESET=''
 fi
 
-log_info()  { echo -e "${BLUE}[info]${RESET} $*" >&2; }
-log_ok()    { echo -e "${GREEN}[ok]${RESET} $*" >&2; }
-log_warn()  { echo -e "${YELLOW}[warn]${RESET} $*" >&2; }
-log_error() { echo -e "${RED}[error]${RESET} $*" >&2; }
-log_step()  { echo -e "${CYAN}[step]${RESET} ${BOLD}$*${RESET}" >&2; }
+log_info() { printf '%b\n' "${BLUE}[info]${RESET} $*" >&2; }
+log_ok() { printf '%b\n' "${GREEN}[ok]${RESET} $*" >&2; }
+log_warn() { printf '%b\n' "${YELLOW}[warn]${RESET} $*" >&2; }
+log_error() { printf '%b\n' "${RED}[error]${RESET} $*" >&2; }
+log_step() { printf '%b\n' "${CYAN}[step]${RESET} ${BOLD}$*${RESET}" >&2; }
 
 # Check if a command exists
 cmd_exists() { command -v "$1" &>/dev/null; }
@@ -59,9 +59,11 @@ CG_EXCLUDE_DIRS=(
 # Join array elements with a delimiter
 # Usage: join_by ',' "${array[@]}"
 join_by() {
-  local d="$1"; shift
+  local d="$1"
+  shift
   [[ $# -eq 0 ]] && return
-  local first="$1"; shift
+  local first="$1"
+  shift
   printf '%s' "$first" "${@/#/$d}"
 }
 
@@ -78,7 +80,7 @@ write_exclude_paths_file() {
   for dir in "${CG_EXCLUDE_DIRS[@]}"; do
     # Regex pattern matching the directory anywhere in the path
     echo "(^|/)${dir}/"
-  done > "$tmpfile"
+  done >"$tmpfile"
   echo "$tmpfile"
 }
 
@@ -129,7 +131,7 @@ get_scoped_files() {
     codebase)
       git ls-files 2>/dev/null || find . -type f -not -path './.git/*'
       ;;
-    uncommitted|changes|all-changes)
+    uncommitted | changes | all-changes)
       # All local uncommitted work: staged + unstaged + untracked
       {
         git diff --cached --name-only --diff-filter=ACMR 2>/dev/null
@@ -164,7 +166,7 @@ write_scope_file() {
   local base_ref="${2:-}"
   local tmpfile
   tmpfile=$(mktemp /tmp/code-guardian-scope-XXXXXX)
-  get_scoped_files "$scope" "$base_ref" > "$tmpfile"
+  get_scoped_files "$scope" "$base_ref" >"$tmpfile"
   echo "$tmpfile"
 }
 

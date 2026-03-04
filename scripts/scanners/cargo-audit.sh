@@ -10,7 +10,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 FINDINGS_FILE="${OUTPUT_DIR}/cargo-audit-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 PROJECT_ROOT="$(pwd)"
 
@@ -47,9 +47,9 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
   EXIT_CODE=0
 
   if cmd_exists cargo-audit; then
-    cargo audit --json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    cargo audit --json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   elif cmd_exists cargo && cargo audit --version &>/dev/null; then
-    cargo audit --json > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    cargo audit --json >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   else
     log_warn "cargo-audit not available, skipping"
     rm -f "$RAW_OUTPUT"
@@ -69,9 +69,9 @@ for audit_dir in "${AUDIT_DIRS[@]}"; do
       LOCKFILE_PATH="${REL_PREFIX:+${REL_PREFIX}/}Cargo.lock"
       python3 -c "
 import json, sys
-lockfile = '$LOCKFILE_PATH'
+lockfile = sys.argv[1]
 try:
-    data = json.load(open('$RAW_OUTPUT'))
+    data = json.load(open(sys.argv[2]))
     vulns = data.get('vulnerabilities', {}).get('list', [])
     for vuln in vulns:
         adv = vuln.get('advisory', {})
@@ -89,7 +89,7 @@ try:
         print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" >> "$FINDINGS_FILE"
+" "$LOCKFILE_PATH" "$RAW_OUTPUT" >>"$FINDINGS_FILE"
     fi
   fi
 
@@ -104,7 +104,7 @@ if [[ $AUDITED -eq 0 ]]; then
   exit 0
 fi
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "cargo-audit: found $count vulnerability(s)"
 else

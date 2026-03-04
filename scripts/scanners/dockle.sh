@@ -11,13 +11,16 @@ OUTPUT_DIR="${SCAN_OUTPUT_DIR:-.}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --target) TARGET="$2"; shift 2 ;;
+    --target)
+      TARGET="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
 
 FINDINGS_FILE="${OUTPUT_DIR}/dockle-findings.jsonl"
-> "$FINDINGS_FILE"
+: >"$FINDINGS_FILE"
 
 if [[ -z "$TARGET" ]]; then
   log_info "No Docker image target specified, skipping Dockle"
@@ -32,12 +35,12 @@ EXIT_CODE=0
 DOCKER_IMAGE="${CG_DOCKER_IMAGE:-}"
 
 if cmd_exists dockle; then
-  dockle --format json "$TARGET" > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+  dockle --format json "$TARGET" >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]] && docker image inspect "$TARGET" &>/dev/null; then
   log_info "Using Docker image: $DOCKER_IMAGE"
   docker run --rm --network none -v /var/run/docker.sock:/var/run/docker.sock \
     "$DOCKER_IMAGE" --format json "$TARGET" \
-    > "$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
+    >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
 else
   log_skip_tool "Dockle"
   rm -f "$RAW_OUTPUT"
@@ -76,13 +79,13 @@ try:
             print(json.dumps(finding))
 except Exception as e:
     print(json.dumps({'error': str(e)}), file=sys.stderr)
-" "$RAW_OUTPUT" "$TARGET" > "$FINDINGS_FILE"
+" "$RAW_OUTPUT" "$TARGET" >"$FINDINGS_FILE"
   fi
 fi
 
 rm -f "$RAW_OUTPUT"
 
-count=$(wc -l < "$FINDINGS_FILE" | tr -d ' ')
+count=$(wc -l <"$FINDINGS_FILE" | tr -d ' ')
 if [[ "$count" -gt 0 ]]; then
   log_warn "Dockle: found $count issue(s)"
 else

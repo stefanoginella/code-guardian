@@ -38,12 +38,30 @@ fi
 # CLI args override config
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --stack-json) STACK_JSON="$2"; shift 2 ;;
-    --tools-json) TOOLS_JSON="$2"; shift 2 ;;
-    --scope) SCOPE="$2"; shift 2 ;;
-    --base-ref) BASE_REF="$2"; shift 2 ;;
-    --tools) ONLY_TOOLS="$2"; shift 2 ;;
-    --report-file) REPORT_FILE_OVERRIDE="$2"; shift 2 ;;
+    --stack-json)
+      STACK_JSON="$2"
+      shift 2
+      ;;
+    --tools-json)
+      TOOLS_JSON="$2"
+      shift 2
+      ;;
+    --scope)
+      SCOPE="$2"
+      shift 2
+      ;;
+    --base-ref)
+      BASE_REF="$2"
+      shift 2
+      ;;
+    --tools)
+      ONLY_TOOLS="$2"
+      shift 2
+      ;;
+    --report-file)
+      REPORT_FILE_OVERRIDE="$2"
+      shift 2
+      ;;
     *) shift ;;
   esac
 done
@@ -51,7 +69,7 @@ done
 # Parse --tools into an array for filtering
 only_filter=()
 if [[ -n "$ONLY_TOOLS" ]]; then
-  while IFS= read -r t; do [[ -n "$t" ]] && only_filter+=("$t"); done < <(tr ',' '\n' <<< "$ONLY_TOOLS")
+  while IFS= read -r t; do [[ -n "$t" ]] && only_filter+=("$t"); done < <(tr ',' '\n' <<<"$ONLY_TOOLS")
 fi
 
 if [[ -z "$STACK_JSON" ]] || ! [[ -f "$STACK_JSON" ]]; then
@@ -74,7 +92,7 @@ echo "" >&2
 SCOPE_FILE=""
 if [[ "$SCOPE" != "codebase" ]]; then
   SCOPE_FILE=$(write_scope_file "$SCOPE" "$BASE_REF")
-  file_count=$(wc -l < "$SCOPE_FILE" | tr -d ' ')
+  file_count=$(wc -l <"$SCOPE_FILE" | tr -d ' ')
   log_info "Files in scope: $file_count"
   if [[ "$file_count" -eq 0 ]]; then
     log_ok "No files in scope — nothing to scan"
@@ -96,7 +114,11 @@ print(json.dumps(d.get('languages', [])))
 print(str(d.get('docker', False)).lower())
 print(json.dumps(d.get('iacTools', [])))
 " "$STACK_JSON" 2>/dev/null || printf '[]\nfalse\n[]\n')
-{ IFS= read -r languages; IFS= read -r has_docker; IFS= read -r iac_tools; } <<< "$_stack_fields"
+{
+  IFS= read -r languages
+  IFS= read -r has_docker
+  IFS= read -r iac_tools
+} <<<"$_stack_fields"
 
 # Parse available tools from tools JSON
 available_tools=()
@@ -227,7 +249,7 @@ for scanner in "${scanners_to_run[@]}"; do
   scanner_docker_image=$(get_tool_docker_image "$scanner")
   findings_file=$(
     CG_DOCKER_IMAGE="$scanner_docker_image" \
-    bash "$SCANNER_SCRIPT" ${SCANNER_ARGS[@]+"${SCANNER_ARGS[@]}"} | tail -1
+      bash "$SCANNER_SCRIPT" ${SCANNER_ARGS[@]+"${SCANNER_ARGS[@]}"} | tail -1
   ) || scanner_exit=$?
 
   if [[ $scanner_exit -eq 2 ]]; then
@@ -252,15 +274,15 @@ done
 
 # ── Merge all findings ────────────────────────────────────────────────
 MERGED_FILE="${SCAN_OUTPUT_DIR}/all-findings.jsonl"
-> "$MERGED_FILE"
+: >"$MERGED_FILE"
 for f in "${ALL_FINDINGS[@]+"${ALL_FINDINGS[@]}"}"; do
   if [[ -f "$f" ]] && [[ -s "$f" ]]; then
-    cat "$f" >> "$MERGED_FILE"
+    cat "$f" >>"$MERGED_FILE"
   fi
 done
 
 # ── Summary ───────────────────────────────────────────────────────────
-total=$(wc -l < "$MERGED_FILE" | tr -d ' ')
+total=$(wc -l <"$MERGED_FILE" | tr -d ' ')
 high=$(grep -cE '"severity" *: *"high"' "$MERGED_FILE" 2>/dev/null) || high=0
 medium=$(grep -cE '"severity" *: *"medium"' "$MERGED_FILE" 2>/dev/null) || medium=0
 low=$(grep -cE '"severity" *: *"low"' "$MERGED_FILE" 2>/dev/null) || low=0
@@ -322,12 +344,17 @@ fi
 
 # Build JSON array from bash array: ("a" "b") → ["a","b"]
 _json_array() {
-  if [[ $# -eq 0 ]]; then echo "[]"; return; fi
-  printf '['; local first=true
+  if [[ $# -eq 0 ]]; then
+    echo "[]"
+    return
+  fi
+  printf '['
+  local first=true
   for item in "$@"; do
     $first && first=false || printf ','
     printf '"%s"' "$item"
-  done; printf ']'
+  done
+  printf ']'
 }
 
 skipped_json=$(_json_array "${SKIPPED_SCANNERS[@]+"${SKIPPED_SCANNERS[@]}"}")
