@@ -1,12 +1,10 @@
 ---
 name: code-guardian-setup
 description: Check security tool availability for the detected stack and show install instructions
-argument-hint: "[--configure]"
 allowed-tools:
   - Bash
   - Read
   - Write
-  - AskUserQuestion
 ---
 
 # Security Tools Setup
@@ -104,68 +102,41 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/read-config.sh --get exclude
 
 Filter out directories that are already in the hardcoded exclusion list (`node_modules`, `.venv`, `dist`, `build`, `coverage`, etc.) or already in the user's config `exclude` key.
 
-**If test directories are found**: Display a recommendation like:
+Store the detected test directories for use in Step 8.
 
-> **Test directories detected:** `tests/`, `__tests__/`, `cypress/`
->
-> Test code commonly triggers false positives in SAST and secret scanners (fake credentials in fixtures, mock auth tokens, test SQL). Excluding test directories from security scans is an industry-standard practice. Dependency scanners (npm-audit, pip-audit) are unaffected since they scan lockfiles, not source code.
->
-> To exclude these directories, re-run with `--configure` or add them to `.claude/code-guardian.config.json` under the `"exclude"` key.
-
-Store the detected test directories in a shell variable for use in Step 8.
+**If test directories are found that are NOT already excluded**: mention them in the report (Step 8 will auto-add them).
 
 **If no test directories are found**: Skip silently (no output).
 
-### Step 7: Show Current Configuration
+### Step 7: Write Configuration
 
-Read the current config:
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/read-config.sh --dump
-```
+Always generate `.claude/code-guardian.config.json` with all options explicitly set, using sensible defaults based on what was detected:
 
-If a config file exists (`.claude/code-guardian.config.json`), display the current settings.
+- **tools**: List all available tool names from the check-tools output (Step 2). This makes it explicit which tools will run.
+- **scope**: `"codebase"`
+- **dockerFallback**: `false`
+- **aiReview**: `true`
+- **exclude**: Include any test directories detected in Step 6. Merge with any existing exclusions from a previous config (don't lose them).
 
-If no config file exists, tell the user:
-> Configuration: No configuration file found. Using defaults (all available tools, full codebase scope).
+If the config file already exists, read it first and preserve any user customizations (e.g. if they changed `scope` to `"uncommitted"`, keep that). Only fill in missing keys with defaults and update `tools` to reflect currently available tools.
 
-Then tell the user they're all set and can run `/code-guardian:scan` anytime. Do NOT ask the user whether they want to configure — just end here and STOP. If they want to customize defaults later, they can re-run `/code-guardian:setup --configure`.
+Write the config file and display it.
 
-### Step 8: Configure Scan Defaults (only if `--configure` was passed as argument)
+### Step 8: Finish
 
-Check the value of `$ARGUMENTS` (which has been substituted below). If it equals `--configure`, proceed with this step. If `$ARGUMENTS` is empty or contains anything else, SKIP this entire step — do NOT ask any configuration questions.
+Tell the user the config has been saved, then explain the available options they can customize:
 
-Current arguments: `$ARGUMENTS`
-
-If the arguments match `--configure`, ask the user which tools to run by default. Since AskUserQuestion only supports 2-4 options, group tools by category. Ask (multi-select): "Which tool categories do you want enabled?" with options like:
-- "SAST scanners" (description: lists the SAST tools available, e.g. semgrep, eslint)
-- "Secret scanners" (description: lists the secret tools available, e.g. gitleaks, trufflehog)
-- "Dependency scanners" (description: lists the dep tools available, e.g. npm-audit, pip-audit, trivy)
-- "All tools (Recommended)" (description: run every available tool)
-
-Based on the answer, determine the config:
-- If the user selected "All tools" or all categories → don't set `tools` (default runs everything)
-- If the user selected specific categories → set `tools` to the tools in those categories
-
-Then ask the user: "What scope do you want to scan by default?" — options: "entire codebase (Recommended)" sets `scope: "codebase"`, "only uncommitted changes" sets `scope: "uncommitted"`, "only unpushed commits" sets `scope: "unpushed"`.
-
-Then ask the user: "Enable Docker fallback?" — explain that this allows Docker images to be used for tools not installed locally, with hardened security controls (pinned versions, read-only mounts, network isolation where possible). Options: "No (Recommended)" sets `dockerFallback: false`, "Yes" sets `dockerFallback: true`.
-
-Then, if test directories were detected in Step 6, ask the user (multi-select): "Which test directories should be excluded from SAST/secret scans?" — list each detected test directory as an option (max 4). Explain that dependency scanners (npm-audit, pip-audit) are unaffected. If the user selects any, add them to the config `exclude` array.
-
-Write the config file `.claude/code-guardian.config.json`:
-
-```json
-{
-  "tools": ["semgrep", "gitleaks", "trivy"],
-  "scope": "codebase",
-  "dockerFallback": false,
-  "exclude": ["tests", "__tests__", "cypress"]
-}
-```
-
-Only include keys the user explicitly configured. Omitted keys use defaults.
-
-Tell the user: "Configuration saved to `.claude/code-guardian.config.json`. CLI arguments always override these defaults."
+> **Configuration saved to `.claude/code-guardian.config.json`.**
+>
+> You can customize these options by editing the file:
+>
+> - **`tools`** — List of tools to run (e.g. `["gitleaks", "semgrep"]`). Remove tools you don't want, or leave all for full coverage.
+> - **`scope`** — What to scan: `"codebase"` (everything), `"uncommitted"` (unstaged/staged changes only), or `"unpushed"` (commits not yet pushed).
+> - **`dockerFallback`** — Set `true` to use Docker images for tools not installed locally.
+> - **`aiReview`** — Set `false` to skip the AI security review pass after CLI tools finish.
+> - **`exclude`** — Directories to skip in SAST/secret scans (e.g. test dirs with fake credentials). Dependency scanners are unaffected.
+>
+> CLI arguments (`--tools`, `--scope`) always override config values. Run `/code-guardian:scan` to scan.
 
 ## Configuration File Reference
 
@@ -183,7 +154,7 @@ Tell the user: "Configuration saved to `.claude/code-guardian.config.json`. CLI 
 
 ## Important Notes
 
-- This command is read-only by default — it only writes the config file if the user opts in
+- This command always writes the config file with sensible defaults
 - Tool availability is cached for 24 hours so future scans skip re-detection
 - Scans work fine with partial tool coverage — missing tools just mean fewer checks
 - The config file should be committed to the repo so the team shares the same defaults
