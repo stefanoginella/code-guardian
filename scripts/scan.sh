@@ -135,9 +135,11 @@ fi
 
 # Determine which scanners to run
 scanners_to_run=()
+SCOPE_SKIPPED_SCANNERS=()
 
 # Collect needed tools from stack
-needed_tools=()
+# Always include gitleaks (secret scanning applies to all repos)
+needed_tools=("gitleaks")
 while IFS= read -r lang; do
   [[ -z "$lang" ]] && continue
   while IFS= read -r tool; do
@@ -174,7 +176,7 @@ if echo "$iac_tools" | grep -q '[a-z]'; then
 fi
 
 # Filter to available tools only (and apply --tools filter if set)
-for tool in "${needed_tools[@]}"; do
+for tool in ${needed_tools[@]+"${needed_tools[@]}"}; do
   # If --tools was specified, skip tools not in the filter list
   if [[ ${#only_filter[@]} -gt 0 ]]; then
     in_filter=false
@@ -230,7 +232,6 @@ ALL_FINDINGS=()
 ALL_SUMMARIES=()
 FAILED_SCANNERS=()
 SKIPPED_SCANNERS=()
-SCOPE_SKIPPED_SCANNERS=()
 
 for scanner in "${scanners_to_run[@]}"; do
   SCANNER_SCRIPT="${SCRIPT_DIR}/scanners/${scanner}.sh"

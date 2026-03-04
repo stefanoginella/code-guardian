@@ -7,6 +7,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"
 
 PROJECT_DIR="${1:-.}"
+PROJECT_DIR="$(cd "$PROJECT_DIR" 2>/dev/null && pwd)" || { echo "Error: invalid project directory: ${1:-}" >&2; exit 1; }
+# Ensure the resolved path is within the original working directory
+_CWD="$(pwd)"
+if [[ "$PROJECT_DIR" != "$_CWD" && "$PROJECT_DIR" != "$_CWD/"* ]]; then
+  echo "Error: project directory escapes working directory: $PROJECT_DIR" >&2
+  exit 1
+fi
 cd "$PROJECT_DIR"
 
 languages=()

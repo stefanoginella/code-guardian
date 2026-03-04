@@ -63,7 +63,7 @@ elif docker_fallback_enabled && docker_available && [[ -n "$DOCKER_IMAGE" ]]; th
   ARGS_FILE=$(mktemp /tmp/cg-bandit-args-XXXXXX)
   printf '%s\0' "${BANDIT_ARGS[@]}" >"$ARGS_FILE"
   docker run --rm -v "$(pwd):/src:ro" -v "$ARGS_FILE:/tmp/bandit-args:ro" -w /src \
-    "$DOCKER_IMAGE" sh -c 'pip install -q bandit && xargs -0 bandit < /tmp/bandit-args' \
+    "$DOCKER_IMAGE" sh -c 'pip install -q bandit && xargs -0 bandit -- < /tmp/bandit-args' \
     >"$RAW_OUTPUT" 2>/dev/null || EXIT_CODE=$?
   rm -f "$ARGS_FILE"
 else

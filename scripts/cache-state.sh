@@ -96,7 +96,7 @@ cache_version = int(sys.argv[3])
 cache = {
     'version': cache_version,
     'cachedAt': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-    'projectPath': os.path.abspath('.'),
+    'projectPath': os.path.basename(os.path.abspath('.')),
     'stack': stack,
     'tools': tools,
 }
@@ -141,7 +141,7 @@ if cache.get('version') != cache_version:
     sys.exit(0)
 
 # Path check
-if cache.get('projectPath') != os.path.abspath('.'):
+if cache.get('projectPath') != os.path.basename(os.path.abspath('.')):
     print('invalid')
     sys.exit(0)
 
