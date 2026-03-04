@@ -40,7 +40,14 @@ log_step "Running Bandit (Python SAST)..."
 RAW_OUTPUT=$(mktemp /tmp/cg-bandit-XXXXXX.json)
 EXIT_CODE=0
 
-BANDIT_ARGS=("-r" "." "-f" "json" "-q" "--exclude" "$(get_exclude_dirs_csv)")
+# Bandit needs ./-prefixed paths when scanning "." (its isdir check converts
+# bare names to glob patterns that fail to match the ./-prefixed walked paths).
+_bandit_excludes=""
+for _bd in "${CG_EXCLUDE_DIRS[@]}"; do
+  [[ -n "$_bandit_excludes" ]] && _bandit_excludes+=","
+  _bandit_excludes+="./${_bd}"
+done
+BANDIT_ARGS=("-r" "." "-f" "json" "-q" "--exclude" "$_bandit_excludes")
 
 # Scope filtering: build array of .py files from scope
 if [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]] && [[ -s "$SCOPE_FILE" ]]; then
