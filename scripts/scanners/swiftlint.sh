@@ -24,7 +24,7 @@ FINDINGS_FILE="${OUTPUT_DIR}/swiftlint-findings.jsonl"
 
 # Check for Swift files
 has_swift=false
-find . -maxdepth 4 -name "*.swift" -not -path '*/.build/*' -not -path '*/Pods/*' 2>/dev/null | head -1 | grep -q . && has_swift=true
+find . -maxdepth 4 -name "*.swift" -not -path '*/.build/*' -not -path '*/Pods/*' $(get_find_exclude_args) 2>/dev/null | head -1 | grep -q . && has_swift=true
 
 if ! $has_swift; then
   log_info "No Swift files found, skipping SwiftLint"

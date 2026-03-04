@@ -24,7 +24,7 @@ FINDINGS_FILE="${OUTPUT_DIR}/dart-analyze-findings.jsonl"
 
 # Check for Dart files or pubspec.yaml
 has_dart=false
-if [[ -f pubspec.yaml ]] || find . -maxdepth 4 -name "*.dart" -not -path '*/.dart_tool/*' 2>/dev/null | head -1 | grep -q .; then
+if [[ -f pubspec.yaml ]] || find . -maxdepth 4 -name "*.dart" -not -path '*/.dart_tool/*' $(get_find_exclude_args) 2>/dev/null | head -1 | grep -q .; then
   has_dart=true
 fi
 

@@ -29,6 +29,7 @@ done < <(find . -name composer.json \
   -not -path '*/vendor/*' \
   -not -path '*/.git/*' \
   -not -path '*/.cache/*' \
+  $(get_find_exclude_args) \
   2>/dev/null | sort)
 
 if [[ ${#AUDIT_DIRS[@]} -eq 0 ]]; then

@@ -176,6 +176,7 @@ Tell the user: "Configuration saved to `.claude/code-guardian.config.json`. CLI 
 | `tools`          | string[] | (all available) | Only run these tools. Omit to run all available.     |
 | `scope`          | string   | `"codebase"`    | Default scan scope: codebase, uncommitted, unpushed. |
 | `dockerFallback` | boolean  | `false`         | Allow Docker images as fallback when tools aren't installed locally. |
+| `aiReview`       | boolean  | `true`          | Run AI security review after CLI tools. Set `false` to skip.             |
 | `exclude`        | string[] | `[]`            | Additional directories to exclude from SAST/secret scans (e.g. test dirs). |
 
 **Precedence**: CLI `--tools` / `--scope` always override config values.

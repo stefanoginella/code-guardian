@@ -46,6 +46,7 @@ done < <(find . -name package.json \
   -not -path '*/.cache/*' \
   -not -path '*/dist/*' \
   -not -path '*/build/*' \
+  $(get_find_exclude_args) \
   2>/dev/null | sort)
 
 # Also check for global eslint with security plugin at root

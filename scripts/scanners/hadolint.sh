@@ -29,7 +29,7 @@ if [[ -n "$TARGET" ]]; then
 else
   while IFS= read -r -d '' f; do
     DOCKERFILES+=("$f")
-  done < <(find . -maxdepth 3 \( -name "Dockerfile" -o -name "Dockerfile.*" -o -name "*.dockerfile" \) -print0 2>/dev/null)
+  done < <(find . -maxdepth 3 \( -name "Dockerfile" -o -name "Dockerfile.*" -o -name "*.dockerfile" \) $(get_find_exclude_args) -print0 2>/dev/null)
 fi
 
 if [[ ${#DOCKERFILES[@]} -eq 0 ]]; then

@@ -19,7 +19,7 @@ FINDINGS_FILE="${OUTPUT_DIR}/checkov-findings.jsonl"
 
 # Check if there are IaC files to scan
 has_iac=false
-find . -maxdepth 4 \( -name "*.tf" -o -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) -print0 2>/dev/null \
+find . -maxdepth 4 \( -name "*.tf" -o -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) $(get_find_exclude_args) -print0 2>/dev/null \
   | xargs -0 grep -lq 'resource\|AWSTemplateFormatVersion\|apiVersion:' 2>/dev/null && has_iac=true
 
 if ! $has_iac; then

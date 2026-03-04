@@ -20,7 +20,7 @@ FINDINGS_FILE="${OUTPUT_DIR}/dotnet-audit-findings.jsonl"
 # Check for .NET project files
 has_dotnet=false
 find . -maxdepth 4 \( -name "*.csproj" -o -name "*.sln" -o -name "*.fsproj" \) \
-  -not -path '*/bin/*' -not -path '*/obj/*' 2>/dev/null | head -1 | grep -q . && has_dotnet=true
+  -not -path '*/bin/*' -not -path '*/obj/*' $(get_find_exclude_args) 2>/dev/null | head -1 | grep -q . && has_dotnet=true
 
 if ! $has_dotnet; then
   log_info "No .NET project files found, skipping dotnet audit"

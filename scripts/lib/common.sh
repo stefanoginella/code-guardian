@@ -103,6 +103,15 @@ get_exclude_dirs_csv() {
   join_by ',' "${CG_EXCLUDE_DIRS[@]}"
 }
 
+# Build find(1) exclusion arguments from CG_EXCLUDE_DIRS.
+# Outputs -not -path patterns for each excluded directory.
+# Usage: find . $(get_find_exclude_args) -name '*.txt'
+get_find_exclude_args() {
+  for dir in "${CG_EXCLUDE_DIRS[@]}"; do
+    printf '%s\n' "-not" "-path" "*/${dir}/*"
+  done
+}
+
 # Write exclusion patterns (one regex per line) to a temp file for tools
 # that accept an exclude-paths file (e.g., trufflehog)
 write_exclude_paths_file() {

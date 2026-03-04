@@ -23,6 +23,7 @@ done < <(find . -name Cargo.lock \
   -not -path '*/target/*' \
   -not -path '*/.git/*' \
   -not -path '*/vendor/*' \
+  $(get_find_exclude_args) \
   2>/dev/null | sort)
 
 if [[ ${#AUDIT_DIRS[@]} -eq 0 ]]; then

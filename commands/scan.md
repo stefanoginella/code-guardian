@@ -1,7 +1,7 @@
 ---
 name: code-guardian-scan
 description: Run security scan on the codebase using detected stack-appropriate tools
-argument-hint: "[--scope codebase|uncommitted|unpushed] [--tools tool1,tool2,...] [--refresh]"
+argument-hint: "[--scope codebase|uncommitted|unpushed] [--tools tool1,tool2,...] [--no-ai] [--refresh]"
 allowed-tools:
   - Bash
   - Read
@@ -27,9 +27,10 @@ The scan respects project-level configuration from `.claude/code-guardian.config
 Parse from `$ARGUMENTS`:
 - `--scope` (codebase, uncommitted, unpushed) — default: codebase (or config `scope`)
 - `--tools` — comma-separated list of specific tools to run (e.g. `--tools semgrep,gitleaks`). Only these tools will run; all others are skipped. If omitted, uses config `tools` if set, otherwise all available tools run.
+- `--no-ai` — skip the AI security review step (Step 3b). If omitted, checks config `aiReview` (default: `true`).
 - `--refresh` — force re-detection, ignore cache
 
-Config values (`tools`, `scope`) are loaded automatically by scan.sh. CLI args override them.
+Config values (`tools`, `scope`, `aiReview`) are loaded automatically by scan.sh. CLI args override them.
 
 If scope is not provided via CLI, scan.sh uses the config `scope` value, falling back to `codebase`. Do NOT ask the user for scope — just proceed with the default. If the user passed `--scope unpushed` without a base ref, ask the user: "Compare against which base?" — default branch, remote tracking branch, or custom ref.
 
@@ -75,6 +76,8 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh \
 Pass `--tools` if the user passed `--tools`.
 
 ### Step 3b: AI Security Review
+
+**Skip this entire step if `--no-ai` was passed or if config `aiReview` is `false`.** If skipped, note: "AI security review skipped (disabled via flag/config)." and proceed to Step 4.
 
 After CLI tools complete, run the AI reviewer to catch business logic vulnerabilities that deterministic tools miss.
 

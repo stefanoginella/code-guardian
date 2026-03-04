@@ -43,6 +43,7 @@ done < <(find . -name package.json \
   -not -path '*/.cache/*' \
   -not -path '*/dist/*' \
   -not -path '*/build/*' \
+  $(get_find_exclude_args) \
   2>/dev/null | sort)
 
 if [[ ${#AUDIT_DIRS[@]} -eq 0 ]]; then
