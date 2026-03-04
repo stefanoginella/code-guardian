@@ -81,6 +81,39 @@ build/                      — Build scripts (separate from plugin scripts/)
 - **`package/cli.js`** — npm bin entry point; adds marketplace and installs plugin via `claude` CLI
 - **`build/prepublish.sh`** — Run before `npm publish` to sync versions and copy README/LICENSE
 
+## Running Tests
+
+The test suite uses [bats-core](https://github.com/bats-core/bats-core) and installs it automatically on first run:
+
+```bash
+bash tests/run-tests.sh
+```
+
+Tests cover stack detection, config reading, cache I/O, report generation, and findings validation.
+
+## Linting
+
+All shell scripts are checked with ShellCheck and formatted with shfmt:
+
+```bash
+# ShellCheck — static analysis
+shellcheck --severity=warning --shell=bash \
+  scripts/lib/*.sh scripts/*.sh scripts/scanners/*.sh \
+  build/*.sh hooks/scripts/*.sh
+
+# shfmt — formatting check
+shfmt -d -i 2 -ci -bn \
+  scripts/lib/*.sh scripts/*.sh scripts/scanners/*.sh \
+  build/*.sh hooks/scripts/*.sh
+
+# Auto-format all scripts
+shfmt -w -i 2 -ci -bn \
+  scripts/lib/*.sh scripts/*.sh scripts/scanners/*.sh \
+  build/*.sh hooks/scripts/*.sh
+```
+
+Both checks run in CI on every push and PR.
+
 ## How to Contribute
 
 ### Reporting Issues

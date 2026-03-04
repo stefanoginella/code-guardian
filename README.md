@@ -1,6 +1,6 @@
-# 🛡 Code Guardian — EXPERIMENTAL
+# 🛡 Code Guardian
 
-[![Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code) [![Status](https://img.shields.io/badge/Status-Experimental-orange)]()
+[![npm version](https://img.shields.io/npm/v/@stefanoginella/code-guardian)](https://www.npmjs.com/package/@stefanoginella/code-guardian) [![CI](https://github.com/stefanoginella/code-guardian/actions/workflows/lint.yml/badge.svg)](https://github.com/stefanoginella/code-guardian/actions/workflows/lint.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![Plugin](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://docs.anthropic.com/en/docs/claude-code) [![Status](https://img.shields.io/badge/Status-Experimental-orange)]()
 
 > **⚠️ EXPERIMENTAL** — This plugin is under active development. Scripts, commands, and output formats may change without notice. Test in non-critical projects first.
 
@@ -132,6 +132,22 @@ Or from the marketplace inside Claude Code:
 ```
 
 Scopes: `project` (shared with team), `user` (all your projects), `local` (personal, gitignored).
+
+### Verify Installation
+
+After installing, verify the plugin is loaded:
+
+```
+/code-guardian:code-guardian-setup
+```
+
+This should detect your project stack and show available tools. If the command isn't recognized, the plugin isn't loaded — check your plugin scope or restart Claude Code.
+
+To verify the npm package:
+
+```bash
+npm info @stefanoginella/code-guardian version
+```
 
 Or as a local plugin for development:
 
