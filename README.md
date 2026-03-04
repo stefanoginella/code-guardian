@@ -240,4 +240,4 @@ The scan command runs bash scripts that invoke Docker or local CLI tools. Claude
 
 ## 📄 License
 
-[MIT]
+[MIT](LICENSE.md)
