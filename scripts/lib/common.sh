@@ -56,6 +56,33 @@ CG_EXCLUDE_DIRS=(
   _bmad-output
 )
 
+# Load user-configured exclusions from .claude/code-guardian.config.json
+# Appends to CG_EXCLUDE_DIRS, deduplicating against existing entries.
+_load_user_exclusions() {
+  local read_config
+  read_config="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/read-config.sh"
+  [[ -f "$read_config" ]] || return 0
+
+  local user_csv
+  user_csv=$(bash "$read_config" --get exclude 2>/dev/null) || return 0
+  [[ -z "$user_csv" ]] && return 0
+
+  IFS=',' read -ra user_dirs <<<"$user_csv"
+  for udir in "${user_dirs[@]}"; do
+    [[ -z "$udir" ]] && continue
+    # Skip if already present
+    local already=false
+    for existing in "${CG_EXCLUDE_DIRS[@]}"; do
+      if [[ "$existing" == "$udir" ]]; then
+        already=true
+        break
+      fi
+    done
+    $already || CG_EXCLUDE_DIRS+=("$udir")
+  done
+}
+_load_user_exclusions
+
 # Join array elements with a delimiter
 # Usage: join_by ',' "${array[@]}"
 join_by() {

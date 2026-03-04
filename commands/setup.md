@@ -86,7 +86,37 @@ If ESLint security is in the tool list, note that it requires the `eslint-plugin
 
 If all tools are available, just say so: "All recommended security tools are available. Run `/code-guardian:code-guardian-scan` to scan."
 
-### Step 6: Show Current Configuration
+### Step 6: Detect Test Directories
+
+Search the project for directories commonly used for test code, fixtures, and mocks. These directories generate false positives in SAST and secret scanners because they intentionally contain fake credentials, mock auth tokens, test SQL queries, etc.
+
+**Patterns to search for** (only top-level and one level deep): `tests`, `test`, `__tests__`, `spec`, `e2e`, `cypress`, `playwright`, `fixtures`, `__fixtures__`, `__mocks__`, `mocks`, `testdata`, `test-data`
+
+Use `find` to discover which of these exist:
+```bash
+find . -maxdepth 2 -type d \( -name "tests" -o -name "test" -o -name "__tests__" -o -name "spec" -o -name "e2e" -o -name "cypress" -o -name "playwright" -o -name "fixtures" -o -name "__fixtures__" -o -name "__mocks__" -o -name "mocks" -o -name "testdata" -o -name "test-data" \) -not -path "./.git/*" -not -path "*/node_modules/*" 2>/dev/null
+```
+
+Then read current exclusions to filter out already-excluded dirs:
+```bash
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/read-config.sh --get exclude
+```
+
+Filter out directories that are already in the hardcoded exclusion list (`node_modules`, `.venv`, `dist`, `build`, `coverage`, etc.) or already in the user's config `exclude` key.
+
+**If test directories are found**: Display a recommendation like:
+
+> **Test directories detected:** `tests/`, `__tests__/`, `cypress/`
+>
+> Test code commonly triggers false positives in SAST and secret scanners (fake credentials in fixtures, mock auth tokens, test SQL). Excluding test directories from security scans is an industry-standard practice. Dependency scanners (npm-audit, pip-audit) are unaffected since they scan lockfiles, not source code.
+>
+> To exclude these directories, re-run with `--configure` or add them to `.claude/code-guardian.config.json` under the `"exclude"` key.
+
+Store the detected test directories in a shell variable for use in Step 8.
+
+**If no test directories are found**: Skip silently (no output).
+
+### Step 7: Show Current Configuration
 
 Read the current config:
 ```bash
@@ -100,7 +130,7 @@ If no config file exists, tell the user:
 
 Then tell the user they're all set and can run `/code-guardian:scan` anytime. Do NOT ask the user whether they want to configure — just end here and STOP. If they want to customize defaults later, they can re-run `/code-guardian:setup --configure`.
 
-### Step 7: Configure Scan Defaults (only if `--configure` was passed as argument)
+### Step 8: Configure Scan Defaults (only if `--configure` was passed as argument)
 
 Check the value of `$ARGUMENTS` (which has been substituted below). If it equals `--configure`, proceed with this step. If `$ARGUMENTS` is empty or contains anything else, SKIP this entire step — do NOT ask any configuration questions.
 
@@ -114,13 +144,16 @@ Then ask the user: "What scope do you want to scan by default?" — options: "en
 
 Then ask the user (multi-select): "Enable Docker fallback?" — explain that this allows Docker images to be used for tools not installed locally, with hardened security controls (pinned versions, read-only mounts, network isolation where possible). Options: "No" (default) sets `dockerFallback: false`, "Yes": `dockerFallback: true`
 
+Then, if test directories were detected in Step 6, ask the user (multi-select): "Which test directories should be excluded from SAST/secret scans?" — list each detected test directory as an option. Explain that dependency scanners (npm-audit, pip-audit) are unaffected. If the user selects any, add them to the config `exclude` array.
+
 Write the config file `.claude/code-guardian.config.json`:
 
 ```json
 {
   "tools": ["semgrep", "gitleaks", "trivy"],
   "scope": "codebase",
-  "dockerFallback": false
+  "dockerFallback": false,
+  "exclude": ["tests", "__tests__", "cypress"]
 }
 ```
 
@@ -137,6 +170,7 @@ Tell the user: "Configuration saved to `.claude/code-guardian.config.json`. CLI 
 | `tools`          | string[] | (all available) | Only run these tools. Omit to run all available.     |
 | `scope`          | string   | `"codebase"`    | Default scan scope: codebase, uncommitted, unpushed. |
 | `dockerFallback` | boolean  | `false`         | Allow Docker images as fallback when tools aren't installed locally. |
+| `exclude`        | string[] | `[]`            | Additional directories to exclude from SAST/secret scans (e.g. test dirs). |
 
 **Precedence**: CLI `--tools` / `--scope` always override config values.
 

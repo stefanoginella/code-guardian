@@ -1,6 +1,6 @@
 {
   "name": "code-guardian",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "[EXPERIMENTAL] Deterministic + AI security scanning layer for Claude Code with AI-powered review.",
   "author": {
     "name": "Stefano Ginella"

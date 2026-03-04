@@ -64,6 +64,13 @@ assert d['tools'] == ['semgrep', 'gitleaks']
   [ "$output" = "" ]
 }
 
+@test "read-config: --get exclude returns comma-separated list" {
+  cp "$FIXTURES_DIR/configs/with-exclude.json" .claude/code-guardian.config.json
+  run bash "$SCRIPTS_DIR/read-config.sh" --get exclude
+  [ "$status" -eq 0 ]
+  [ "$output" = "tests,__tests__,cypress" ]
+}
+
 @test "read-config: empty config returns empty for any key" {
   cp "$FIXTURES_DIR/configs/empty.json" .claude/code-guardian.config.json
   run bash "$SCRIPTS_DIR/read-config.sh" --get scope

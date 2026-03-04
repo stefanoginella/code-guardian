@@ -1,0 +1,1 @@
+{"scope": "codebase", "tools": ["semgrep", "gitleaks"], "exclude": ["tests", "__tests__", "cypress"]}

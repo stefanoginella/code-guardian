@@ -33,6 +33,11 @@ log_step "Running Semgrep (SAST)..."
 SEMGREP_ARGS=("--config" "auto" "--json" "--quiet")
 $AUTOFIX && SEMGREP_ARGS+=("--autofix")
 
+# Exclude directories (consistent with other scanners)
+for edir in "${CG_EXCLUDE_DIRS[@]}"; do
+  SEMGREP_ARGS+=("--exclude" "$edir")
+done
+
 # Scope handling: if scope file provided, use --include for each file
 if [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]] && [[ -s "$SCOPE_FILE" ]]; then
   while IFS= read -r f; do
