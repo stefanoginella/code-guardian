@@ -1,0 +1,4 @@
+{"tool":"semgrep","severity":"high","rule":"test","message":"valid line","file":"test.js","line":1,"autoFixable":false,"category":"sast"}
+{not valid json at all
+{"tool":"semgrep","severity":"INVALID_SEVERITY","rule":"test","message":"bad severity","file":"test.js","line":1,"autoFixable":false,"category":"sast"}
+{"tool":"semgrep","severity":"high","message":"missing rule and file fields","line":1,"autoFixable":false}

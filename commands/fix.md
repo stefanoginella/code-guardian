@@ -1,7 +1,7 @@
 ---
 name: code-guardian-fix
 description: Fix security findings from a scan report
-argument-hint: "[report-path] [--levels high|medium|low] [--issues 1,3,5]"
+argument-hint: "[report-path] [--levels high|medium|low] [--issues 1,3,5] [--dry-run]"
 allowed-tools:
   - Bash
   - Read
@@ -24,6 +24,7 @@ Parse from `$ARGUMENTS`:
 - First positional argument (optional) — path to a specific report file (e.g. `.code-guardian/scan-reports/scan-report-20260302_143000.md`). If not provided, uses the most recent report.
 - `--levels` — comma-separated severity levels to fix (e.g. `--levels high` or `--levels high,medium`). Only findings matching these severities will be fixed.
 - `--issues` — comma-separated issue numbers from the scan report (e.g. `--issues 1,3,5`). Only these specific findings will be fixed.
+- `--dry-run` — preview fixes without applying them. The security-fixer agent will describe proposed changes instead of modifying files.
 
 If neither `--levels` nor `--issues` is provided, fix all findings.
 
@@ -97,6 +98,7 @@ TEMP_FINDINGS=$(mktemp /tmp/cg-fix-findings-XXXXXX.jsonl)
 Invoke the **security-fixer** agent with:
 - The temporary findings file path
 - The plugin root path (`${CLAUDE_PLUGIN_ROOT}`) so it can locate scanner scripts for CLI autofix
+- The `dryRun` flag (true if `--dry-run` was passed)
 
 The agent will:
 1. Run CLI tools with `--autofix` for auto-fixable findings (e.g. `semgrep --autofix`, `eslint --fix`)

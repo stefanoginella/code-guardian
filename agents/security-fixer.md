@@ -63,6 +63,14 @@ The following scanners support `--autofix`:
 
 If a scanner script doesn't exist or fails, move those findings to Phase 2.
 
+### Dry-Run Mode
+
+If the `dryRun` flag is set:
+- **Skip Phase 1 entirely** (do not run CLI autofix tools)
+- In Phase 2, describe each proposed fix without applying it
+- Output a plan with: finding number, proposed change description, affected file/lines, and confidence level
+- This lets users preview what would change before committing to fixes
+
 ### Phase 2: AI Code Fixes
 
 For all remaining findings (non-auto-fixable findings + any that failed CLI autofix):
@@ -72,8 +80,15 @@ For all remaining findings (non-auto-fixable findings + any that failed CLI auto
    a. Read the file
    b. Understand each finding in context (what the code does, why it's flagged)
    c. Determine if the finding is a true positive or false positive
-   d. For true positives: apply the minimal fix
+   d. For true positives: apply the minimal fix (or describe the fix if in dry-run mode)
    e. For false positives: note them for the report
+
+### Phase 2b: Diff Review
+
+After applying fixes, review each change:
+1. Run `git diff` on each modified file
+2. Verify the fix is correct — does it address the vulnerability without breaking functionality?
+3. If a fix looks incorrect or introduces a new issue, revert it and mark the finding for human review
 
 ### Phase 3: Summary
 

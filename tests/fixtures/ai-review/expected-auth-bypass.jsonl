@@ -1,0 +1,1 @@
+{"tool":"ai-review","severity":"high","rule":"auth-bypass","message":"Endpoint /api/admin/users lacks authentication middleware — any unauthenticated request can access user data","file":"src/routes/admin.js","line":24,"autoFixable":false,"category":"ai-review"}

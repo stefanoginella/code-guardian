@@ -1,0 +1,1 @@
+{"tool":"ai-review","severity":"medium","rule":"race-condition","message":"Balance check at line 103 and deduction at line 108 are not atomic — concurrent requests can double-spend by passing the check simultaneously","file":"src/services/payment.js","line":103,"autoFixable":false,"category":"ai-review"}

@@ -90,7 +90,13 @@ After CLI tools complete, run the AI reviewer to catch business logic vulnerabil
    - `findingsFile` — path to the merged findings file (`all-findings.jsonl` from scan output)
    - `outputFile` — the `AI_FINDINGS` path above
 
-3. If the AI findings file exists and is non-empty:
+3. If the AI findings file exists and is non-empty, first validate it:
+   ```bash
+   bash ${CLAUDE_PLUGIN_ROOT}/scripts/validate-findings.sh "$AI_FINDINGS" --strict
+   ```
+   - If validation fails (exit 1): log a warning ("AI review findings failed schema validation — skipping AI findings") and skip to Step 4. Do NOT merge invalid AI findings into the report.
+   - If validation succeeds (exit 0): proceed to merge.
+
    a. Append AI findings to the merged findings file:
       ```bash
       cat "$AI_FINDINGS" >> "$FINDINGS_FILE"

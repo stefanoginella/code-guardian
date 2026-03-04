@@ -1,0 +1,1 @@
+{"tool":"ai-review","severity":"medium","rule":"idor","message":"User ID from req.params.userId used directly in User.findById() without verifying the authenticated user owns this resource","file":"src/controllers/profile.js","line":58,"autoFixable":false,"category":"ai-review"}

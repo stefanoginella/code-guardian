@@ -149,14 +149,26 @@ Before writing a finding:
 2. Check if you've already written a finding for the same `(file, line)` — skip duplicates
 3. Don't report issues that are clearly already covered by a CLI tool finding at a nearby line (within 3 lines) for the same file
 
-## Step 5: Write Output
+## Step 5: Self-Validate Output
+
+Before writing the final output, validate every finding you intend to emit:
+
+1. **Schema check**: Every finding must have all 8 required fields (`tool`, `severity`, `rule`, `message`, `file`, `line`, `autoFixable`, `category`)
+2. **Rule check**: `rule` must be one of the 8 allowed categories: `auth-bypass`, `idor`, `race-condition`, `mass-assignment`, `data-leak`, `input-validation`, `business-logic`, `error-info-leak`
+3. **Confidence threshold**: Only emit findings where you are at least 80% confident the vulnerability is real
+4. **Evidence requirement**: Each finding's `message` must reference a specific code construct (function name, endpoint, variable) — generic descriptions are not acceptable
+5. **Line accuracy**: The `line` number must point to the actual vulnerable code, not just the file header or a nearby comment
+
+Drop any finding that fails these checks. Your output is machine-validated by `validate-findings.sh --strict` and will be rejected if malformed.
+
+## Step 6: Write Output
 
 Write all findings to the outputFile, one JSON object per line. If you found no issues, create an empty file.
 
 After writing, report to stderr:
 - How many findings you produced
 - Breakdown by rule category
-- How many potential issues you skipped due to deduplication
+- How many potential issues you skipped due to deduplication or self-validation
 
 ## Important Rules
 

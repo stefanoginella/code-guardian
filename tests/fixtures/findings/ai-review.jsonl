@@ -1,0 +1,3 @@
+{"tool":"ai-review","severity":"high","rule":"auth-bypass","message":"Missing authentication check on admin endpoint /api/admin/users allows unauthenticated access","file":"src/routes/admin.js","line":24,"autoFixable":false,"category":"ai-review"}
+{"tool":"ai-review","severity":"medium","rule":"idor","message":"User ID from request params used directly in database query without ownership verification","file":"src/controllers/profile.js","line":58,"autoFixable":false,"category":"ai-review"}
+{"tool":"ai-review","severity":"medium","rule":"race-condition","message":"Balance check and deduction are not atomic, allowing double-spend via concurrent requests","file":"src/services/payment.js","line":103,"autoFixable":false,"category":"ai-review"}
