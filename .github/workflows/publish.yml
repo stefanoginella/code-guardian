@@ -30,6 +30,7 @@ jobs:
         if: steps.version.outputs.changed == 'true'
         with:
           node-version: lts/*
+          registry-url: https://registry.npmjs.org
 
       - name: Prepublish
         if: steps.version.outputs.changed == 'true'
@@ -52,3 +53,5 @@ jobs:
         if: steps.version.outputs.changed == 'true'
         working-directory: package
         run: npm publish --provenance --access public --tag ${{ steps.tag.outputs.tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
