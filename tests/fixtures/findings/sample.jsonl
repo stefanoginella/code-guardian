@@ -1,0 +1,5 @@
+{"tool":"semgrep","severity":"high","rule":"javascript.express.security.audit.xss.mustache-escape","message":"Unescaped variable in template","file":"src/views/index.html","line":15,"autoFixable":false,"category":"sast"}
+{"tool":"semgrep","severity":"medium","rule":"javascript.lang.security.audit.non-literal-regexp","message":"Non-literal RegExp from user input","file":"src/utils.js","line":42,"autoFixable":false,"category":"sast"}
+{"tool":"gitleaks","severity":"high","rule":"generic-api-key","message":"Generic API Key detected","file":"config/keys.js","line":3,"autoFixable":false,"category":"secrets"}
+{"tool":"trivy","severity":"medium","rule":"CVE-2023-45678","message":"Vulnerability in lodash < 4.17.21","file":"package-lock.json","line":0,"autoFixable":true,"category":"dependency"}
+{"tool":"trivy","severity":"low","rule":"CVE-2023-11111","message":"Low severity issue in dev dependency","file":"package-lock.json","line":0,"autoFixable":true,"category":"dependency"}
