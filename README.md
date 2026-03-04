@@ -61,7 +61,7 @@ Scan options can also be set as persistent defaults in `.claude/code-guardian.co
 
 ## ⚙️ Configuration
 
-Scan defaults can be persisted in `.claude/code-guardian.config.json` so you don't have to pass flags every time. Create it manually or run `/code-guardian:code-guardian-setup` to configure interactively.
+Scan defaults live in `.claude/code-guardian.config.json`. Run `/code-guardian:code-guardian-setup` to auto-generate it with sensible defaults, or create it manually.
 
 ```json
 {
@@ -77,6 +77,7 @@ Scan defaults can be persisted in `.claude/code-guardian.config.json` so you don
 | `tools` | `string[]` | all available | Only run these tools. Omit to run everything available. |
 | `scope` | `string` | `"codebase"` | Default scan scope: `codebase`, `uncommitted`, or `unpushed`. |
 | `dockerFallback` | `boolean` | `false` | Allow Docker images as fallback for tools not installed locally. |
+| `aiReview` | `boolean` | `true` | Run AI security review after CLI tools. Set `false` to skip. |
 | `exclude` | `string[]` | `[]` | Additional directories to exclude from SAST/secret scans (e.g. test dirs). Dependency scanners are unaffected. |
 
 **Precedence:** CLI flags always win over config values. `CG_DOCKER_FALLBACK=1` env var overrides the config `dockerFallback` setting. 
