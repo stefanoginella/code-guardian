@@ -1,9 +1,39 @@
 #!/usr/bin/env bash
-# Sync package.json versions when plugin.json is being committed
+# Pre-commit: version sync + lint check
+set -euo pipefail
 
+root="$(git rev-parse --show-toplevel)"
 staged=$(git diff --cached --name-only)
 
+# --- Version sync ---
 if echo "$staged" | grep -q '.claude-plugin/plugin.json'; then
-  bash "$(git rev-parse --show-toplevel)/build/sync-versions.sh"
+  bash "$root/build/sync-versions.sh"
   git add package/package.json
+fi
+
+# --- Lint staged shell scripts ---
+sh_files=$(echo "$staged" | grep '\.sh$' || true)
+if [[ -n "$sh_files" ]]; then
+  lint_failed=0
+
+  while IFS= read -r f; do
+    [[ -n "$f" && -f "$root/$f" ]] || continue
+
+    if command -v shellcheck >/dev/null 2>&1; then
+      if ! shellcheck --severity=warning --shell=bash "$root/$f"; then
+        lint_failed=1
+      fi
+    fi
+
+    if command -v shfmt >/dev/null 2>&1; then
+      if ! shfmt -d -i 2 -ci -bn "$root/$f"; then
+        lint_failed=1
+      fi
+    fi
+  done <<< "$sh_files"
+
+  if [[ $lint_failed -ne 0 ]]; then
+    echo "pre-commit: lint check failed (fix shfmt issues with: shfmt -w -i 2 -ci -bn <file>)" >&2
+    exit 1
+  fi
 fi

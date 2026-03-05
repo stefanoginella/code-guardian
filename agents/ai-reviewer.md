@@ -75,7 +75,7 @@ Read the findingsFile (JSONL). Parse each line and build a set of `(file, line)`
 
 ## Step 3: Review the Code
 
-For each piece of code you gathered, look for these categories of issues that CLI tools typically miss:
+For each piece of code you gathered, look for these types of issues that CLI tools typically miss. Each type has a **rule** name in parentheses — use these as the `"rule"` field value in your findings. The `"category"` field is always `"ai-review"` regardless of rule type.
 
 ### 1. Auth/Authz Bypass (`auth-bypass`)
 - Missing authentication checks on endpoints
@@ -140,7 +140,7 @@ Field rules:
 - `"file"`: Relative path to the affected file
 - `"line"`: Line number where the issue is (best estimate)
 - `"autoFixable"`: Always `false`
-- `"category"`: Always `"ai-review"`
+- `"category"`: **MUST be exactly `"ai-review"`** — never use the rule name or any other value here
 
 ### Deduplication Rules
 
@@ -154,10 +154,11 @@ Before writing a finding:
 Before writing the final output, validate every finding you intend to emit:
 
 1. **Schema check**: Every finding must have all 8 required fields (`tool`, `severity`, `rule`, `message`, `file`, `line`, `autoFixable`, `category`)
-2. **Rule check**: `rule` must be one of the 8 allowed categories: `auth-bypass`, `idor`, `race-condition`, `mass-assignment`, `data-leak`, `input-validation`, `business-logic`, `error-info-leak`
-3. **Confidence threshold**: Only emit findings where you are at least 80% confident the vulnerability is real
-4. **Evidence requirement**: Each finding's `message` must reference a specific code construct (function name, endpoint, variable) — generic descriptions are not acceptable
-5. **Line accuracy**: The `line` number must point to the actual vulnerable code, not just the file header or a nearby comment
+2. **Rule check**: `rule` must be one of: `auth-bypass`, `idor`, `race-condition`, `mass-assignment`, `data-leak`, `input-validation`, `business-logic`, `error-info-leak`
+3. **Category check**: `category` must be exactly `"ai-review"` — not the rule name, not a generic label like "logic" or "data-flow"
+4. **Confidence threshold**: Only emit findings where you are at least 80% confident the vulnerability is real
+5. **Evidence requirement**: Each finding's `message` must reference a specific code construct (function name, endpoint, variable) — generic descriptions are not acceptable
+6. **Line accuracy**: The `line` number must point to the actual vulnerable code, not just the file header or a nearby comment
 
 Drop any finding that fails these checks. Your output is machine-validated by `validate-findings.sh --strict` and will be rejected if malformed.
 
