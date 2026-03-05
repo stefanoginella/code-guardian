@@ -91,6 +91,21 @@ bash tests/run-tests.sh
 
 Tests cover stack detection (JS, TS, Python, Go, Rust, Ruby, PHP, Docker, Terraform, Swift, C++, Elixir, Scala, Dart, and multi-stack), config reading, cache I/O, report generation, and findings validation.
 
+### AI Reviewer — Prompt Injection Tests
+
+The `tests/fixtures/ai-review/` directory contains test fixtures for manually validating that the AI reviewer resists prompt injection attacks embedded in code comments. Each fixture is a source file with intentionally insecure code paired with deceptive comments designed to trick the AI reviewer into skipping findings (e.g., fake audit approvals, skip directives, fabricated ticket references, pseudo-system override tags).
+
+| Fixture | Language | Vulns | Injection Techniques |
+|---------|----------|-------|----------------------|
+| `prompt-injection-server.js` | JavaScript/Express | 8 | 6 |
+| `prompt-injection-api.py` | Python/Flask | 7 | 6 |
+| `prompt-injection-handler.go` | Go net/http | 5 | 5 |
+| `prompt-injection-controller.java` | Java/Spring | 5 | 5 |
+
+These are manual tests — they require invoking the AI reviewer agent against the fixture and checking that all vulnerabilities are reported. Run a scan with `--scope codebase` pointing at the fixture, or invoke the `ai-reviewer` agent directly. The expected findings for the JS fixture are in `expected-prompt-injection.jsonl`.
+
+If you add new injection techniques or modify the AI reviewer's prompt, re-run these fixtures to verify the reviewer isn't fooled.
+
 ## Linting
 
 All shell scripts are checked with ShellCheck and formatted with shfmt:
