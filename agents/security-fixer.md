@@ -1,5 +1,5 @@
 ---
-model: sonnet
+model: opus
 name: security-fixer
 color: red
 description: >
