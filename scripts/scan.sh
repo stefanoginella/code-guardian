@@ -88,17 +88,15 @@ log_info "Scope: $SCOPE"
 [[ "$CG_DOCKER_FALLBACK" == "1" ]] && log_info "Docker fallback: enabled" || log_info "Docker fallback: disabled (local tools only)"
 echo "" >&2
 
-# Get scope file
-SCOPE_FILE=""
-if [[ "$SCOPE" != "codebase" ]]; then
-  SCOPE_FILE=$(write_scope_file "$SCOPE" "$BASE_REF")
-  file_count=$(wc -l <"$SCOPE_FILE" | tr -d ' ')
-  log_info "Files in scope: $file_count"
-  if [[ "$file_count" -eq 0 ]]; then
-    log_ok "No files in scope — nothing to scan"
-    python3 -c "import json,sys; print(json.dumps({'scanDir':sys.argv[1],'findings':[],'summaries':[],'scope':sys.argv[2],'fileCount':0}))" "$SCAN_OUTPUT_DIR" "$SCOPE"
-    exit 0
-  fi
+# Get scope file (always generated so SAST scanners receive explicit file paths
+# instead of scanning ".", avoiding slow walks through node_modules/venv)
+SCOPE_FILE=$(write_scope_file "$SCOPE" "$BASE_REF")
+file_count=$(wc -l <"$SCOPE_FILE" | tr -d ' ')
+log_info "Files in scope: $file_count"
+if [[ "$file_count" -eq 0 ]]; then
+  log_ok "No files in scope — nothing to scan"
+  python3 -c "import json,sys; print(json.dumps({'scanDir':sys.argv[1],'findings':[],'summaries':[],'scope':sys.argv[2],'fileCount':0}))" "$SCAN_OUTPUT_DIR" "$SCOPE"
+  exit 0
 fi
 
 # Parse stack info
@@ -186,8 +184,9 @@ for tool in ${needed_tools[@]+"${needed_tools[@]}"}; do
     $in_filter || continue
   fi
 
-  # Skip dependency scanners when scoped, unless their manifest/lockfiles changed
-  if [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]]; then
+  # Skip dependency scanners when scoped, unless their manifest/lockfiles changed.
+  # For codebase scope, always run all dependency scanners (they should scan everything).
+  if [[ "$SCOPE" != "codebase" ]] && [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]]; then
     manifest_files=$(get_tool_manifest_files "$tool")
     if [[ -n "$manifest_files" ]]; then
       manifest_in_scope=false

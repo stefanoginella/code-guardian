@@ -38,11 +38,18 @@ for edir in "${CG_EXCLUDE_DIRS[@]}"; do
   SEMGREP_ARGS+=("--exclude" "$edir")
 done
 
-# Scope handling: if scope file provided, use --include for each file
+# Scope handling: if scope file provided, use --include for each file.
+# For large scopes (>500 files), skip --include to avoid huge arg lists —
+# semgrep's --exclude flags from CG_EXCLUDE_DIRS already handle exclusions.
 if [[ -n "$SCOPE_FILE" ]] && [[ -f "$SCOPE_FILE" ]] && [[ -s "$SCOPE_FILE" ]]; then
-  while IFS= read -r f; do
-    [[ -n "$f" ]] && SEMGREP_ARGS+=("--include" "$f")
-  done <"$SCOPE_FILE"
+  _scope_count=$(wc -l <"$SCOPE_FILE" | tr -d ' ')
+  if [[ "$_scope_count" -le 500 ]]; then
+    while IFS= read -r f; do
+      [[ -n "$f" ]] && SEMGREP_ARGS+=("--include" "$f")
+    done <"$SCOPE_FILE"
+  else
+    log_info "Scope has ${_scope_count} files — using directory-level exclusions instead of per-file includes"
+  fi
 fi
 
 # Run semgrep
