@@ -169,7 +169,10 @@ get_scoped_files() {
   case "$scope" in
     codebase)
       # Tracked files + untracked (new) files, deduplicated
-      { git ls-files 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null; } | sort -u || find . -type f -not -path './.git/*'
+      {
+        git ls-files 2>/dev/null
+        git ls-files --others --exclude-standard 2>/dev/null
+      } | sort -u || find . -type f -not -path './.git/*'
       ;;
     uncommitted | changes | all-changes)
       # All local uncommitted work: staged + unstaged + untracked
