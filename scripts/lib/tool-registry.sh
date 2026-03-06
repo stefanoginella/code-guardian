@@ -10,13 +10,13 @@ source "${_TOOL_REGISTRY_DIR}/common.sh"
 # Format: TOOL_<name>_DOCKER, TOOL_<name>_INSTALL_<os>, TOOL_<name>_CATEGORY
 
 # Semgrep — multi-language SAST
-TOOL_SEMGREP_DOCKER="semgrep/semgrep:1.153.0@sha256:6fe804189b0cc51d2f174882a228666ddb8835685bced62ab3aa8b231b7e6af1"
+TOOL_SEMGREP_DOCKER="semgrep/semgrep:1.154.0@sha256:9fb6f44dc162b1e0aada85f072a95141844c61e3bfcedf40b8a46fecf208e986"
 TOOL_SEMGREP_INSTALL_MACOS="brew install semgrep"
 TOOL_SEMGREP_INSTALL_LINUX="pip3 install semgrep"
 TOOL_SEMGREP_CATEGORY="sast"
 
 # Trivy — vulnerability scanner (containers, fs, IaC)
-TOOL_TRIVY_DOCKER="aquasec/trivy:0.69.1@sha256:1c78ed1ef824ab8bb05b04359d186e4c1229d0b3e67005faacb54a7d71974f73"
+TOOL_TRIVY_DOCKER="aquasec/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c"
 TOOL_TRIVY_INSTALL_MACOS="brew install trivy"
 TOOL_TRIVY_INSTALL_LINUX="brew install trivy"
 TOOL_TRIVY_CATEGORY="vulnerability"
@@ -34,7 +34,7 @@ TOOL_HADOLINT_INSTALL_LINUX="brew install hadolint"
 TOOL_HADOLINT_CATEGORY="container"
 
 # Checkov — IaC scanner
-TOOL_CHECKOV_DOCKER="bridgecrew/checkov:3.2.506@sha256:879f930e2fd9e1641b824a4270bc5bbfb2e78ad72033a83edc5165ed004cb7f2"
+TOOL_CHECKOV_DOCKER="bridgecrew/checkov:3.2.507@sha256:2bcc40c76b433ec0f9cf7fd23e7c2495c0a9a270b3cc7fe891249c207d4d1427"
 TOOL_CHECKOV_INSTALL_MACOS="brew install checkov"
 TOOL_CHECKOV_INSTALL_LINUX="pip3 install checkov"
 TOOL_CHECKOV_CATEGORY="iac"
@@ -60,7 +60,7 @@ TOOL_BANDIT_INSTALL_LINUX="pip3 install bandit"
 TOOL_BANDIT_CATEGORY="sast"
 
 # gosec — Go SAST
-TOOL_GOSEC_DOCKER="securego/gosec:2.24.0@sha256:12d6912ed8f18987421547a5f9ba807b41fc372ce40c2e1e66c7df72d40de769"
+TOOL_GOSEC_DOCKER="securego/gosec:2.24.7"
 TOOL_GOSEC_INSTALL_MACOS="brew install gosec"
 TOOL_GOSEC_INSTALL_LINUX="go install github.com/securego/gosec/v2/cmd/gosec@latest"
 TOOL_GOSEC_CATEGORY="sast"
@@ -102,7 +102,7 @@ TOOL_DOCKLE_INSTALL_LINUX="brew install goodwithtech/r/dockle"
 TOOL_DOCKLE_CATEGORY="container"
 
 # TruffleHog — secret detection (OSS)
-TOOL_TRUFFLEHOG_DOCKER="trufflesecurity/trufflehog:3.93.6@sha256:82df2d2cfb10208ad4a3cb20b81073acf053beedfa7cce75e6159a21d6980c08"
+TOOL_TRUFFLEHOG_DOCKER="trufflesecurity/trufflehog:3.93.7@sha256:2b23135478a0b842bcab4b5805a4f9ac48e72a2e01f1b1a866b964c715aa4645"
 TOOL_TRUFFLEHOG_INSTALL_MACOS="brew install trufflehog"
 TOOL_TRUFFLEHOG_INSTALL_LINUX="brew install trufflehog"
 TOOL_TRUFFLEHOG_CATEGORY="secrets"
@@ -114,7 +114,7 @@ TOOL_OSV_SCANNER_INSTALL_LINUX="brew install osv-scanner"
 TOOL_OSV_SCANNER_CATEGORY="dependency"
 
 # PHPStan — PHP static analysis
-TOOL_PHPSTAN_DOCKER="ghcr.io/phpstan/phpstan:2.1.17@sha256:b826fdc015c42bfc5e9b641288a42035d564885e668fe1a17afe93e4d7387c09"
+TOOL_PHPSTAN_DOCKER="ghcr.io/phpstan/phpstan:2.1.40@sha256:c1b03e01f711d871760f02f0142a53e5c8d6c5387c28f53cdc22c072d4f10fdd"
 TOOL_PHPSTAN_INSTALL_MACOS="brew install phpstan"
 TOOL_PHPSTAN_INSTALL_LINUX="composer global require phpstan/phpstan"
 TOOL_PHPSTAN_CATEGORY="sast"
@@ -126,13 +126,13 @@ TOOL_BEARER_INSTALL_LINUX="brew install bearer/tap/bearer"
 TOOL_BEARER_CATEGORY="sast"
 
 # Grype — vulnerability scanner (SBOMs, filesystems)
-TOOL_GRYPE_DOCKER="anchore/grype:v0.93.0@sha256:8c82371dad9da0e3476f870d607a5e029f8b6768d0dff8f67553a35ac943baa3"
+TOOL_GRYPE_DOCKER="anchore/grype:v0.109.0@sha256:fc348b3af991774d5ff1bb347c20398797660937eac0398b428f7475f32ff064"
 TOOL_GRYPE_INSTALL_MACOS="brew install grype"
 TOOL_GRYPE_INSTALL_LINUX="brew install grype"
 TOOL_GRYPE_CATEGORY="vulnerability"
 
 # KICS — IaC security scanner (Terraform, CloudFormation, K8s, Docker, etc.)
-TOOL_KICS_DOCKER="checkmarx/kics:v2.1.7@sha256:ae55d199038a45b54a641e4cab1fa020b5ce7574d1de9052fc6a7cf3f0ca7bd7"
+TOOL_KICS_DOCKER="checkmarx/kics:v2.1.20@sha256:3e5a268eb8adda2e5a483c9359ddfc4cd520ab856a7076dc0b1d8784a37e2602"
 TOOL_KICS_INSTALL_MACOS="brew install kics"
 TOOL_KICS_INSTALL_LINUX="brew install kics"
 TOOL_KICS_CATEGORY="iac"
@@ -158,13 +158,13 @@ TOOL_SPOTBUGS_CATEGORY="sast"
 
 # cppcheck — C/C++ static analysis
 # NOTE: facthunder/cppcheck image versions lag behind the tool; 2.4.1 is latest available
-TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.4.1@sha256:d51a7cc954a0bb52a55e4e5cc5f252efbd144c1cde73fd1bab50c5bd60d492a2"
+TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.16.0"
 TOOL_CPPCHECK_INSTALL_MACOS="brew install cppcheck"
 TOOL_CPPCHECK_INSTALL_LINUX="brew install cppcheck"
 TOOL_CPPCHECK_CATEGORY="sast"
 
 # SwiftLint — Swift linter/SAST
-TOOL_SWIFTLINT_DOCKER="ghcr.io/realm/swiftlint:0.58.0@sha256:27b2dc68fb35f554d5cebcb7b47345d95559f85011bc50ef511dab36d3ae1277"
+TOOL_SWIFTLINT_DOCKER="ghcr.io/realm/swiftlint:0.63.2@sha256:8db376ff8a26e56fa506b56b8c70ea9c5583dc52d5746ce23b6c2c4d4ee00e31"
 TOOL_SWIFTLINT_INSTALL_MACOS="brew install swiftlint"
 TOOL_SWIFTLINT_INSTALL_LINUX="brew install swiftlint"
 TOOL_SWIFTLINT_CATEGORY="sast"

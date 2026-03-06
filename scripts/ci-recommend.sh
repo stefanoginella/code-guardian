@@ -148,7 +148,7 @@ GHEOF
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
+        uses: github/codeql-action/upload-sarif@ae9ef3a1d2e3413523c3741725c30064970cc0d4 # v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -169,7 +169,7 @@ HADOEOF
           cat <<'CHECKOVEOF'
       # IaC scanning
       - name: Checkov (IaC security)
-        uses: bridgecrewio/checkov-action@f99709f8ccc3496220c987b7d8729653237c23dc # v12
+        uses: bridgecrewio/checkov-action@4b38516b47b2df46475d84383f9aa2c8ef912aae # v12
         with:
           directory: .
           quiet: true
@@ -254,7 +254,7 @@ PHPSTANEOF
           cat <<'BEAREREOF'
       # Data-flow SAST
       - name: Bearer (data-flow SAST)
-        uses: bearer/bearer-action@v2
+        uses: bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc
         with:
           format: json
           output: bearer-results.json
@@ -266,7 +266,7 @@ BEAREREOF
           cat <<'GRYPEEOF'
       # Vulnerability scanning
       - name: Grype (vulnerability scan)
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e
         with:
           path: '.'
           fail-build: false
@@ -278,7 +278,7 @@ GRYPEEOF
           cat <<'KICSEOF'
       # IaC scanning (KICS)
       - name: KICS (IaC security)
-        uses: checkmarx/kics-github-action@v2
+        uses: checkmarx/kics-github-action@05aa5eb70eede1355220f4ca5238d96b397e30a6
         with:
           path: '.'
           output_formats: json
@@ -388,7 +388,7 @@ gitleaks:
 
 semgrep:
   stage: security
-  image: semgrep/semgrep:1.153.0@sha256:6fe804189b0cc51d2f174882a228666ddb8835685bced62ab3aa8b231b7e6af1
+  image: semgrep/semgrep:1.154.0@sha256:9fb6f44dc162b1e0aada85f072a95141844c61e3bfcedf40b8a46fecf208e986
   script:
     - semgrep --config auto --json --output semgrep-results.json .
   artifacts:
@@ -405,7 +405,7 @@ GLEOF
           cat <<'GLTRIVYEOF'
 trivy:
   stage: security
-  image: aquasec/trivy:0.69.1@sha256:1c78ed1ef824ab8bb05b04359d186e4c1229d0b3e67005faacb54a7d71974f73
+  image: aquasec/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
   script:
     - trivy fs --format json --output trivy-results.json --severity CRITICAL,HIGH .
   artifacts:
@@ -420,7 +420,7 @@ GLTRIVYEOF
           cat <<'GLCHECKOVEOF'
 checkov:
   stage: security
-  image: bridgecrew/checkov:3.2.506@sha256:879f930e2fd9e1641b824a4270bc5bbfb2e78ad72033a83edc5165ed004cb7f2
+  image: bridgecrew/checkov:3.2.507@sha256:2bcc40c76b433ec0f9cf7fd23e7c2495c0a9a270b3cc7fe891249c207d4d1427
   script:
     - checkov -d . --output json --quiet > checkov-results.json || true
   artifacts:
@@ -450,7 +450,7 @@ GLOSVEOF
           cat <<'GLTHEOF'
 trufflehog:
   stage: security
-  image: trufflesecurity/trufflehog:3.93.6@sha256:82df2d2cfb10208ad4a3cb20b81073acf053beedfa7cce75e6159a21d6980c08
+  image: trufflesecurity/trufflehog:3.93.7@sha256:2b23135478a0b842bcab4b5805a4f9ac48e72a2e01f1b1a866b964c715aa4645
   script:
     - trufflehog filesystem --json --no-update . > trufflehog-results.json || true
   artifacts:
@@ -465,7 +465,7 @@ GLTHEOF
           cat <<'GLPHPSTANEOF'
 phpstan:
   stage: security
-  image: ghcr.io/phpstan/phpstan:2.1.17@sha256:b826fdc015c42bfc5e9b641288a42035d564885e668fe1a17afe93e4d7387c09
+  image: ghcr.io/phpstan/phpstan:2.1.40@sha256:c1b03e01f711d871760f02f0142a53e5c8d6c5387c28f53cdc22c072d4f10fdd
   script:
     - phpstan analyse --error-format=json --no-progress --level=5 . > phpstan-results.json || true
   artifacts:
@@ -495,7 +495,7 @@ GLBEAREREOF
           cat <<'GLGRYPEEOF'
 grype:
   stage: security
-  image: anchore/grype:v0.93.0@sha256:8c82371dad9da0e3476f870d607a5e029f8b6768d0dff8f67553a35ac943baa3
+  image: anchore/grype:v0.109.0@sha256:fc348b3af991774d5ff1bb347c20398797660937eac0398b428f7475f32ff064
   script:
     - grype dir:. --output json --quiet > grype-results.json || true
   artifacts:
@@ -510,7 +510,7 @@ GLGRYPEEOF
           cat <<'GLKICSEOF'
 kics:
   stage: security
-  image: checkmarx/kics:v2.1.7@sha256:ae55d199038a45b54a641e4cab1fa020b5ce7574d1de9052fc6a7cf3f0ca7bd7
+  image: checkmarx/kics:v2.1.20@sha256:3e5a268eb8adda2e5a483c9359ddfc4cd520ab856a7076dc0b1d8784a37e2602
   script:
     - kics scan -p . --output-path /tmp/kics --report-formats json --no-progress || true
     - cp /tmp/kics/results.json kics-results.json || true
@@ -573,7 +573,7 @@ GLSPOTBUGSEOF
           cat <<'GLCPPCHECKEOF'
 cppcheck:
   stage: security
-  image: facthunder/cppcheck:2.4.1@sha256:d51a7cc954a0bb52a55e4e5cc5f252efbd144c1cde73fd1bab50c5bd60d492a2
+  image: facthunder/cppcheck:2.16.0
   script:
     - cppcheck --xml --enable=warning,portability --error-exitcode=0 . 2> cppcheck-results.xml || true
   artifacts:
@@ -588,7 +588,7 @@ GLCPPCHECKEOF
           cat <<'GLSWIFTLINTEOF'
 swiftlint:
   stage: security
-  image: ghcr.io/realm/swiftlint:0.58.0@sha256:27b2dc68fb35f554d5cebcb7b47345d95559f85011bc50ef511dab36d3ae1277
+  image: ghcr.io/realm/swiftlint:0.63.2@sha256:8db376ff8a26e56fa506b56b8c70ea9c5583dc52d5746ce23b6c2c4d4ee00e31
   script:
     - swiftlint lint --reporter json --quiet > swiftlint-results.json || true
   artifacts:
