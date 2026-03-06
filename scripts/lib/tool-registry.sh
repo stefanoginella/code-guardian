@@ -60,7 +60,7 @@ TOOL_BANDIT_INSTALL_LINUX="pip3 install bandit"
 TOOL_BANDIT_CATEGORY="sast"
 
 # gosec — Go SAST
-TOOL_GOSEC_DOCKER="securego/gosec:2.24.7"
+TOOL_GOSEC_DOCKER="ghcr.io/securego/gosec:2.24.7@sha256:89a9ee537a08c9eca62306217bf8355175a487fd41dc76dac16e222ca25f309e"
 TOOL_GOSEC_INSTALL_MACOS="brew install gosec"
 TOOL_GOSEC_INSTALL_LINUX="go install github.com/securego/gosec/v2/cmd/gosec@latest"
 TOOL_GOSEC_CATEGORY="sast"
@@ -157,8 +157,8 @@ TOOL_SPOTBUGS_INSTALL_LINUX="brew install spotbugs"
 TOOL_SPOTBUGS_CATEGORY="sast"
 
 # cppcheck — C/C++ static analysis
-# NOTE: facthunder/cppcheck image versions lag behind the tool; 2.4.1 is latest available
-TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.16.0"
+# NOTE: facthunder/cppcheck Docker tags lag behind GitHub releases; auto-update verifies tag exists
+TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.4.1@sha256:d51a7cc954a0bb52a55e4e5cc5f252efbd144c1cde73fd1bab50c5bd60d492a2"
 TOOL_CPPCHECK_INSTALL_MACOS="brew install cppcheck"
 TOOL_CPPCHECK_INSTALL_LINUX="brew install cppcheck"
 TOOL_CPPCHECK_CATEGORY="sast"

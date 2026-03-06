@@ -73,14 +73,58 @@ strip_v() { echo "${1#v}"; }
 # Strip @sha256:... digest suffix from a docker reference
 strip_digest() { echo "${1%%@sha256:*}"; }
 
+# Fetch digest via container registry v2 API (handles single-platform images)
+# Supports Docker Hub and ghcr.io; returns sha256:... or empty string on failure
+fetch_registry_api_digest() {
+  local ref="$1" # e.g. "securego/gosec:2.24.7" or "ghcr.io/securego/gosec:2.24.7"
+  local repo tag token digest registry_url token_url
+
+  repo="${ref%%:*}"
+  tag="${ref##*:}"
+
+  if [[ "$repo" == ghcr.io/* ]]; then
+    repo="${repo#ghcr.io/}"
+    registry_url="https://ghcr.io"
+    token_url="https://ghcr.io/token?service=ghcr.io&scope=repository:${repo}:pull"
+  elif [[ "$repo" == *"/"*"/"* ]]; then
+    # Unsupported registry — skip
+    return
+  else
+    # Docker Hub
+    [[ "$repo" != */* ]] && repo="library/${repo}"
+    registry_url="https://registry-1.docker.io"
+    token_url="https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull"
+  fi
+
+  token=$(curl -sf "$token_url" | jq -r '.token // empty' 2>/dev/null) || true
+  [[ -z "$token" ]] && return
+
+  digest=$(curl -sf -I \
+    -H "Authorization: Bearer ${token}" \
+    -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json" \
+    "${registry_url}/v2/${repo}/manifests/${tag}" \
+    | grep -i '^docker-content-digest:' | awk '{print $2}' | tr -d '\r\n') || true
+
+  echo "$digest"
+}
+
 # Fetch the manifest digest for a Docker image (tag or tag@digest)
 # Returns sha256:... or empty string on failure
 fetch_docker_digest() {
   local image="$1"
-  local ref
+  local ref digest
   ref=$(strip_digest "$image")
-  docker buildx imagetools inspect "$ref" 2>/dev/null \
-    | grep '^Digest:' | awk '{print $2}' || true
+
+  # Try buildx imagetools first (works best for multi-platform manifests)
+  digest=$(docker buildx imagetools inspect "$ref" 2>/dev/null \
+    | grep '^Digest:' | awk '{print $2}' || true)
+
+  # Fallback: Docker Hub registry API (handles single-platform images)
+  if [[ -z "$digest" ]]; then
+    digest=$(fetch_registry_api_digest "$ref")
+  fi
+
+  echo "$digest"
 }
 
 # Compare major version: returns 0 if same major, 1 if different
@@ -167,11 +211,9 @@ update_tool() {
     new_docker_tag="${docker_prefix}${latest_bare}"
   fi
 
-  log_change "$key" "$current_bare" "$latest_bare"
-
-  CHANGES+=("${key}|${current_bare}|${latest_bare}")
-
   if [[ "$DRY_RUN" == "true" ]]; then
+    log_change "$key" "$current_bare" "$latest_bare"
+    CHANGES+=("${key}|${current_bare}|${latest_bare}")
     return
   fi
 
@@ -180,15 +222,19 @@ update_tool() {
   docker_image_base="${current_docker_line#*\"}"
   docker_image_base="${docker_image_base%%:*}"
 
-  # Fetch SHA256 digest for the new image
+  # Fetch SHA256 digest for the new image (also validates the tag exists)
   local new_digest new_docker_ref
   new_digest=$(fetch_docker_digest "${docker_image_base}:${new_docker_tag}")
   if [[ -n "$new_digest" ]]; then
     new_docker_ref="${new_docker_tag}@${new_digest}"
   else
-    log_info "$key" "WARNING: could not fetch digest, pinning by tag only"
-    new_docker_ref="${new_docker_tag}"
+    # No digest means we can't verify the image exists — skip to be safe
+    ERRORS+=("${key}: tag ${docker_image_base}:${new_docker_tag} not found or digest unavailable, skipping update")
+    return
   fi
+
+  log_change "$key" "$current_bare" "$latest_bare"
+  CHANGES+=("${key}|${current_bare}|${latest_bare}")
 
   sedi "s|${docker_var}=\"${docker_image_base}:${current_full_ref}\"|${docker_var}=\"${docker_image_base}:${new_docker_ref}\"|" "$REGISTRY"
 
@@ -319,7 +365,7 @@ update_action "aquasecurity/trivy-action" "aquasecurity/trivy-action" "0.34.1"
 update_action "github/codeql-action/upload-sarif" "github/codeql-action" "v3"
 update_action "hadolint/hadolint-action" "hadolint/hadolint-action" "v3.1.0"
 update_action "bridgecrewio/checkov-action" "bridgecrewio/checkov-action" "v12"
-update_action "securego/gosec" "securego/gosec" "v2.24.0"
+update_action "securego/gosec" "securego/gosec" "v2.24.7"
 update_action "google/osv-scanner-action/osv-scanner" "google/osv-scanner-action" "v2.3.3"
 update_action "trufflesecurity/trufflehog" "trufflesecurity/trufflehog" "v3.93.6"
 update_action "bearer/bearer-action" "bearer/bearer-action" "v2"
