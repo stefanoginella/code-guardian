@@ -80,7 +80,7 @@ fetch_docker_digest() {
   local ref
   ref=$(strip_digest "$image")
   docker buildx imagetools inspect "$ref" 2>/dev/null \
-    | grep '^Digest:' | awk '{print $2}'
+    | grep '^Digest:' | awk '{print $2}' || true
 }
 
 # Compare major version: returns 0 if same major, 1 if different
