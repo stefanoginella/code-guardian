@@ -216,7 +216,6 @@ update_tool() {
   esac
 
   # ── Update GitLab CI image in ci-recommend.sh ──
-  # CI templates use tag-only references (no digest pinning)
   if $has_gitlab; then
     local old_gl_tag="${docker_prefix}${current_bare}"
     local new_gl_tag="${docker_prefix}${latest_bare}"
@@ -224,7 +223,18 @@ update_tool() {
       old_gl_tag="${current_tag}"
       new_gl_tag="${new_docker_tag}"
     fi
-    sedi "s|image: ${docker_image_base}:${old_gl_tag}|image: ${docker_image_base}:${new_gl_tag}|g" "$CI_RECOMMEND"
+
+    # Fetch digest for CI template image too
+    local ci_digest ci_new_ref
+    ci_digest=$(fetch_docker_digest "${docker_image_base}:${new_gl_tag}")
+    if [[ -n "$ci_digest" ]]; then
+      ci_new_ref="${new_gl_tag}@${ci_digest}"
+    else
+      ci_new_ref="${new_gl_tag}"
+    fi
+
+    # Match old image ref with optional @sha256:... digest suffix
+    sedi "s|image: ${docker_image_base}:${old_gl_tag}\(@sha256:[a-f0-9]*\)\{0,1\}|image: ${docker_image_base}:${ci_new_ref}|g" "$CI_RECOMMEND"
   fi
 }
 
@@ -284,12 +294,12 @@ update_tool TRIVY aquasecurity/trivy "" "v" "gitlab"
 update_tool GITLEAKS gitleaks/gitleaks "v" "v" "gitlab,bare_tarball"
 update_tool HADOLINT hadolint/hadolint "v" "v" ""
 update_tool CHECKOV bridgecrewio/checkov "" "pip" "gitlab"
-update_tool GOSEC securego/gosec "v" "v" ""
+update_tool GOSEC securego/gosec "" "v" ""
 update_tool BRAKEMAN presidentbeef/brakeman "v" "gem" ""
 update_tool DOCKLE goodwithtech/dockle "v" "v" "bare_tarball"
 update_tool TRUFFLEHOG trufflesecurity/trufflehog "" "v" "gitlab"
 update_tool OSV_SCANNER google/osv-scanner "v" "v" "gitlab"
-update_tool PHPSTAN phpstan/phpstan "" "composer" "gitlab,2part_docker"
+update_tool PHPSTAN phpstan/phpstan "" "composer" "gitlab"
 update_tool BEARER bearer/bearer "v" "v" "gitlab"
 update_tool GRYPE anchore/grype "v" "v" "gitlab"
 update_tool KICS Checkmarx/kics "v" "v" "gitlab"

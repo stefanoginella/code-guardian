@@ -377,7 +377,7 @@ variables:
 
 gitleaks:
   stage: security
-  image: zricethezav/gitleaks:v8.30.0
+  image: zricethezav/gitleaks:v8.30.0@sha256:691af3c7c5a48b16f187ce3446d5f194838f91238f27270ed36eef6359a574d9
   script:
     - gitleaks detect --source . --report-format json --report-path gitleaks-report.json --no-banner
   artifacts:
@@ -388,7 +388,7 @@ gitleaks:
 
 semgrep:
   stage: security
-  image: semgrep/semgrep:1.153.0
+  image: semgrep/semgrep:1.153.0@sha256:6fe804189b0cc51d2f174882a228666ddb8835685bced62ab3aa8b231b7e6af1
   script:
     - semgrep --config auto --json --output semgrep-results.json .
   artifacts:
@@ -405,7 +405,7 @@ GLEOF
           cat <<'GLTRIVYEOF'
 trivy:
   stage: security
-  image: aquasec/trivy:0.69.1
+  image: aquasec/trivy:0.69.1@sha256:1c78ed1ef824ab8bb05b04359d186e4c1229d0b3e67005faacb54a7d71974f73
   script:
     - trivy fs --format json --output trivy-results.json --severity CRITICAL,HIGH .
   artifacts:
@@ -420,7 +420,7 @@ GLTRIVYEOF
           cat <<'GLCHECKOVEOF'
 checkov:
   stage: security
-  image: bridgecrew/checkov:3.2.506
+  image: bridgecrew/checkov:3.2.506@sha256:879f930e2fd9e1641b824a4270bc5bbfb2e78ad72033a83edc5165ed004cb7f2
   script:
     - checkov -d . --output json --quiet > checkov-results.json || true
   artifacts:
@@ -435,7 +435,7 @@ GLCHECKOVEOF
           cat <<'GLOSVEOF'
 osv-scanner:
   stage: security
-  image: ghcr.io/google/osv-scanner:v2.3.3
+  image: ghcr.io/google/osv-scanner:v2.3.3@sha256:bf249317dcf838cf9e47f370cfd4dd4178d875bba14e3ce74d299c5bf1b129a1
   script:
     - osv-scanner --format json -r . > osv-results.json || true
   artifacts:
@@ -450,7 +450,7 @@ GLOSVEOF
           cat <<'GLTHEOF'
 trufflehog:
   stage: security
-  image: trufflesecurity/trufflehog:3.93.6
+  image: trufflesecurity/trufflehog:3.93.6@sha256:82df2d2cfb10208ad4a3cb20b81073acf053beedfa7cce75e6159a21d6980c08
   script:
     - trufflehog filesystem --json --no-update . > trufflehog-results.json || true
   artifacts:
@@ -465,7 +465,7 @@ GLTHEOF
           cat <<'GLPHPSTANEOF'
 phpstan:
   stage: security
-  image: ghcr.io/phpstan/phpstan:2.1
+  image: ghcr.io/phpstan/phpstan:2.1.17@sha256:b826fdc015c42bfc5e9b641288a42035d564885e668fe1a17afe93e4d7387c09
   script:
     - phpstan analyse --error-format=json --no-progress --level=5 . > phpstan-results.json || true
   artifacts:
@@ -480,7 +480,7 @@ GLPHPSTANEOF
           cat <<'GLBEAREREOF'
 bearer:
   stage: security
-  image: bearer/bearer:v1.47.3
+  image: bearer/bearer:v1.51.1@sha256:b7be1db4e02cc6f57f5da9e07115e9f89385597ac9dc3a6fc9b4977e4ad7f160
   script:
     - bearer scan . --format json --quiet > bearer-results.json || true
   artifacts:
@@ -495,7 +495,7 @@ GLBEAREREOF
           cat <<'GLGRYPEEOF'
 grype:
   stage: security
-  image: anchore/grype:v0.93.0
+  image: anchore/grype:v0.93.0@sha256:8c82371dad9da0e3476f870d607a5e029f8b6768d0dff8f67553a35ac943baa3
   script:
     - grype dir:. --output json --quiet > grype-results.json || true
   artifacts:
@@ -510,7 +510,7 @@ GLGRYPEEOF
           cat <<'GLKICSEOF'
 kics:
   stage: security
-  image: checkmarx/kics:v2.1.7
+  image: checkmarx/kics:v2.1.7@sha256:ae55d199038a45b54a641e4cab1fa020b5ce7574d1de9052fc6a7cf3f0ca7bd7
   script:
     - kics scan -p . --output-path /tmp/kics --report-formats json --no-progress || true
     - cp /tmp/kics/results.json kics-results.json || true
@@ -526,7 +526,7 @@ GLKICSEOF
           cat <<'GLCOMPOSEREOF'
 composer-audit:
   stage: security
-  image: composer:latest
+  image: composer:latest@sha256:f0809732b2188154b3faa8e44ab900595acb0b09cd0aa6c34e798efe4ebc9021
   script:
     - composer audit --format=json > composer-audit-results.json || true
   artifacts:
@@ -541,7 +541,7 @@ GLCOMPOSEREOF
           cat <<'GLDOTNETEOF'
 dotnet-audit:
   stage: security
-  image: mcr.microsoft.com/dotnet/sdk:8.0
+  image: mcr.microsoft.com/dotnet/sdk:8.0@sha256:bfb6ed602caa605141700aea7dc7d42574b74b704368e67d683c71a002123808
   script:
     - dotnet list package --vulnerable --format json > dotnet-audit-results.json || true
   artifacts:
@@ -556,7 +556,9 @@ GLDOTNETEOF
           cat <<'GLSPOTBUGSEOF'
 spotbugs:
   stage: security
-  image: ghcr.io/spotbugs/spotbugs:4.9.3
+  image: eclipse-temurin:21-jdk@sha256:c880d7bdbcab3bb1e82159d5781760832e94b72b65dfa1835b4c23b241232b45
+  before_script:
+    - apt-get update && apt-get install -y spotbugs
   script:
     - spotbugs -textui -xml -effort:max -low . > spotbugs-results.xml || true
   artifacts:
@@ -571,7 +573,7 @@ GLSPOTBUGSEOF
           cat <<'GLCPPCHECKEOF'
 cppcheck:
   stage: security
-  image: facthunder/cppcheck:2.17.1
+  image: facthunder/cppcheck:2.4.1@sha256:d51a7cc954a0bb52a55e4e5cc5f252efbd144c1cde73fd1bab50c5bd60d492a2
   script:
     - cppcheck --xml --enable=warning,portability --error-exitcode=0 . 2> cppcheck-results.xml || true
   artifacts:
@@ -586,7 +588,7 @@ GLCPPCHECKEOF
           cat <<'GLSWIFTLINTEOF'
 swiftlint:
   stage: security
-  image: ghcr.io/realm/swiftlint:0.58.0
+  image: ghcr.io/realm/swiftlint:0.58.0@sha256:27b2dc68fb35f554d5cebcb7b47345d95559f85011bc50ef511dab36d3ae1277
   script:
     - swiftlint lint --reporter json --quiet > swiftlint-results.json || true
   artifacts:
@@ -601,7 +603,7 @@ GLSWIFTLINTEOF
           cat <<'GLSOBELOWEOF'
 sobelow:
   stage: security
-  image: elixir:latest
+  image: elixir:latest@sha256:35f607850c21611039d994219811922207d611ce46bfd108311a92d0a849bc7f
   script:
     - mix local.hex --force
     - mix archive.install hex sobelow --force
@@ -618,7 +620,7 @@ GLSOBELOWEOF
           cat <<'GLDARTEOF'
 dart-analyze:
   stage: security
-  image: dart:stable
+  image: dart:stable@sha256:e3ea62cbe54470e5cc4c31cbc85693aa9b0b01723521baf0be634ea3597e1f5d
   script:
     - dart analyze --format=json . > dart-analyze-results.json || true
   artifacts:

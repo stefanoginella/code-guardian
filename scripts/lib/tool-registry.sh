@@ -60,7 +60,7 @@ TOOL_BANDIT_INSTALL_LINUX="pip3 install bandit"
 TOOL_BANDIT_CATEGORY="sast"
 
 # gosec — Go SAST
-TOOL_GOSEC_DOCKER="securego/gosec:v2.24.0"
+TOOL_GOSEC_DOCKER="securego/gosec:2.24.0@sha256:12d6912ed8f18987421547a5f9ba807b41fc372ce40c2e1e66c7df72d40de769"
 TOOL_GOSEC_INSTALL_MACOS="brew install gosec"
 TOOL_GOSEC_INSTALL_LINUX="go install github.com/securego/gosec/v2/cmd/gosec@latest"
 TOOL_GOSEC_CATEGORY="sast"
@@ -114,13 +114,13 @@ TOOL_OSV_SCANNER_INSTALL_LINUX="brew install osv-scanner"
 TOOL_OSV_SCANNER_CATEGORY="dependency"
 
 # PHPStan — PHP static analysis
-TOOL_PHPSTAN_DOCKER="ghcr.io/phpstan/phpstan:2.1"
+TOOL_PHPSTAN_DOCKER="ghcr.io/phpstan/phpstan:2.1.17@sha256:b826fdc015c42bfc5e9b641288a42035d564885e668fe1a17afe93e4d7387c09"
 TOOL_PHPSTAN_INSTALL_MACOS="brew install phpstan"
 TOOL_PHPSTAN_INSTALL_LINUX="composer global require phpstan/phpstan"
 TOOL_PHPSTAN_CATEGORY="sast"
 
 # Bearer — data-flow SAST (multi-language)
-TOOL_BEARER_DOCKER="bearer/bearer:v1.47.3"
+TOOL_BEARER_DOCKER="bearer/bearer:v1.51.1@sha256:b7be1db4e02cc6f57f5da9e07115e9f89385597ac9dc3a6fc9b4977e4ad7f160"
 TOOL_BEARER_INSTALL_MACOS="brew install bearer/tap/bearer"
 TOOL_BEARER_INSTALL_LINUX="brew install bearer/tap/bearer"
 TOOL_BEARER_CATEGORY="sast"
@@ -150,13 +150,15 @@ TOOL_DOTNET_AUDIT_INSTALL_LINUX="(bundled with .NET SDK)"
 TOOL_DOTNET_AUDIT_CATEGORY="dependency"
 
 # SpotBugs — Java bytecode SAST
-TOOL_SPOTBUGS_DOCKER="ghcr.io/spotbugs/spotbugs:4.9.3"
+# No public Docker image available (ghcr.io requires auth); local install only
+TOOL_SPOTBUGS_DOCKER=""
 TOOL_SPOTBUGS_INSTALL_MACOS="brew install spotbugs"
 TOOL_SPOTBUGS_INSTALL_LINUX="brew install spotbugs"
 TOOL_SPOTBUGS_CATEGORY="sast"
 
 # cppcheck — C/C++ static analysis
-TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.17.1"
+# NOTE: facthunder/cppcheck image versions lag behind the tool; 2.4.1 is latest available
+TOOL_CPPCHECK_DOCKER="facthunder/cppcheck:2.4.1@sha256:d51a7cc954a0bb52a55e4e5cc5f252efbd144c1cde73fd1bab50c5bd60d492a2"
 TOOL_CPPCHECK_INSTALL_MACOS="brew install cppcheck"
 TOOL_CPPCHECK_INSTALL_LINUX="brew install cppcheck"
 TOOL_CPPCHECK_CATEGORY="sast"
