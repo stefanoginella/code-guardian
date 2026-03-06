@@ -20,6 +20,17 @@ CACHE_FILE=".claude/code-guardian-cache.json"
 CACHE_VERSION=1
 DEFAULT_MAX_AGE=86400 # 24 hours
 
+# Resolve effective dockerFallback setting (env > config > false)
+_resolve_docker_fallback() {
+  if [[ -n "${CG_DOCKER_FALLBACK:-}" ]]; then
+    [[ "$CG_DOCKER_FALLBACK" == "1" ]] && echo "true" || echo "false"
+  else
+    local cfg
+    cfg=$(bash "${SCRIPT_DIR}/read-config.sh" --get dockerFallback 2>/dev/null || true)
+    [[ "$cfg" == "true" ]] && echo "true" || echo "false"
+  fi
+}
+
 # ── Argument parsing ─────────────────────────────────────────────────
 
 mode=""
@@ -86,24 +97,29 @@ do_write() {
   local tmpfile
   tmpfile=$(mktemp .claude/.cg-cache-XXXXXX)
 
+  local docker_fb
+  docker_fb=$(_resolve_docker_fallback)
+
   python3 -c "
 import json, sys, datetime, os
 
 stack = json.load(open(sys.argv[1]))
 tools = json.load(open(sys.argv[2]))
 cache_version = int(sys.argv[3])
+docker_fallback = sys.argv[4] == 'true'
 
 cache = {
     'version': cache_version,
     'cachedAt': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
     'projectPath': os.path.basename(os.path.abspath('.')),
+    'dockerFallback': docker_fallback,
     'stack': stack,
     'tools': tools,
 }
 
 json.dump(cache, sys.stdout, indent=2)
 print()
-" "$stack_file" "$tools_file" "$CACHE_VERSION" >"$tmpfile"
+" "$stack_file" "$tools_file" "$CACHE_VERSION" "$docker_fb" >"$tmpfile"
 
   mv "$tmpfile" "$CACHE_FILE"
   log_ok "Cache written to $CACHE_FILE"
@@ -122,12 +138,16 @@ do_read() {
 
   # Validate and check staleness via python3
   local result
+  local docker_fb
+  docker_fb=$(_resolve_docker_fallback)
+
   result=$(python3 -c "
 import json, sys, datetime, os
 
 cache_file = sys.argv[1]
 cache_version = int(sys.argv[2])
 max_age_secs = int(sys.argv[3])
+current_docker_fb = sys.argv[4] == 'true'
 
 try:
     cache = json.load(open(cache_file))
@@ -145,6 +165,11 @@ if cache.get('projectPath') != os.path.basename(os.path.abspath('.')):
     print('invalid')
     sys.exit(0)
 
+# Docker fallback setting changed — tool statuses are stale
+if cache.get('dockerFallback') != current_docker_fb:
+    print('invalid')
+    sys.exit(0)
+
 # Staleness check
 cached_at = datetime.datetime.strptime(cache['cachedAt'], '%Y-%m-%dT%H:%M:%SZ')
 cached_at = cached_at.replace(tzinfo=datetime.timezone.utc)
@@ -156,7 +181,7 @@ if age_seconds >= max_age_secs:
     sys.exit(0)
 
 print('fresh')
-" "$CACHE_FILE" "$CACHE_VERSION" "$max_age" 2>/dev/null) || { exit 1; }
+" "$CACHE_FILE" "$CACHE_VERSION" "$max_age" "$docker_fb" 2>/dev/null) || { exit 1; }
 
   case "$result" in
     fresh)

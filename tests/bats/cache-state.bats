@@ -94,6 +94,30 @@ assert d['version'] == 1
   rm -rf "$other_dir"
 }
 
+@test "cache-state: docker fallback change invalidates cache" {
+  _write_stack_file
+  _write_tools_file
+  # Write cache with docker fallback disabled
+  CG_DOCKER_FALLBACK=0 bash "$SCRIPTS_DIR/cache-state.sh" --write \
+    --stack-file "$BATS_TEST_TMPDIR/stack.json" \
+    --tools-file "$BATS_TEST_TMPDIR/tools.json" 2>/dev/null
+
+  # Read with docker fallback enabled → should invalidate
+  run bash -c "CG_DOCKER_FALLBACK=1 bash '$SCRIPTS_DIR/cache-state.sh' --read --max-age 3600"
+  [ "$status" -eq 1 ]
+}
+
+@test "cache-state: same docker fallback setting uses cache" {
+  _write_stack_file
+  _write_tools_file
+  CG_DOCKER_FALLBACK=0 bash "$SCRIPTS_DIR/cache-state.sh" --write \
+    --stack-file "$BATS_TEST_TMPDIR/stack.json" \
+    --tools-file "$BATS_TEST_TMPDIR/tools.json" 2>/dev/null
+
+  run bash -c "CG_DOCKER_FALLBACK=0 bash '$SCRIPTS_DIR/cache-state.sh' --read --max-age 3600 2>/dev/null"
+  [ "$status" -eq 0 ]
+}
+
 @test "cache-state: write requires both stack-file and tools-file" {
   run bash "$SCRIPTS_DIR/cache-state.sh" --write --stack-file /tmp/nonexistent.json
   [ "$status" -ne 0 ]
