@@ -10,31 +10,31 @@ source "${_TOOL_REGISTRY_DIR}/common.sh"
 # Format: TOOL_<name>_DOCKER, TOOL_<name>_INSTALL_<os>, TOOL_<name>_CATEGORY
 
 # Semgrep — multi-language SAST
-TOOL_SEMGREP_DOCKER="semgrep/semgrep:1.153.0"
+TOOL_SEMGREP_DOCKER="semgrep/semgrep:1.153.0@sha256:6fe804189b0cc51d2f174882a228666ddb8835685bced62ab3aa8b231b7e6af1"
 TOOL_SEMGREP_INSTALL_MACOS="brew install semgrep"
 TOOL_SEMGREP_INSTALL_LINUX="pip3 install semgrep"
 TOOL_SEMGREP_CATEGORY="sast"
 
 # Trivy — vulnerability scanner (containers, fs, IaC)
-TOOL_TRIVY_DOCKER="aquasec/trivy:0.69.1"
+TOOL_TRIVY_DOCKER="aquasec/trivy:0.69.1@sha256:1c78ed1ef824ab8bb05b04359d186e4c1229d0b3e67005faacb54a7d71974f73"
 TOOL_TRIVY_INSTALL_MACOS="brew install trivy"
 TOOL_TRIVY_INSTALL_LINUX="brew install trivy"
 TOOL_TRIVY_CATEGORY="vulnerability"
 
 # Gitleaks — secret detection
-TOOL_GITLEAKS_DOCKER="zricethezav/gitleaks:v8.30.0"
+TOOL_GITLEAKS_DOCKER="zricethezav/gitleaks:v8.30.0@sha256:691af3c7c5a48b16f187ce3446d5f194838f91238f27270ed36eef6359a574d9"
 TOOL_GITLEAKS_INSTALL_MACOS="brew install gitleaks"
 TOOL_GITLEAKS_INSTALL_LINUX="brew install gitleaks"
 TOOL_GITLEAKS_CATEGORY="secrets"
 
 # Hadolint — Dockerfile linter
-TOOL_HADOLINT_DOCKER="hadolint/hadolint:v2.14.0"
+TOOL_HADOLINT_DOCKER="hadolint/hadolint:v2.14.0@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e"
 TOOL_HADOLINT_INSTALL_MACOS="brew install hadolint"
 TOOL_HADOLINT_INSTALL_LINUX="brew install hadolint"
 TOOL_HADOLINT_CATEGORY="container"
 
 # Checkov — IaC scanner
-TOOL_CHECKOV_DOCKER="bridgecrew/checkov:3.2.506"
+TOOL_CHECKOV_DOCKER="bridgecrew/checkov:3.2.506@sha256:879f930e2fd9e1641b824a4270bc5bbfb2e78ad72033a83edc5165ed004cb7f2"
 TOOL_CHECKOV_INSTALL_MACOS="brew install checkov"
 TOOL_CHECKOV_INSTALL_LINUX="pip3 install checkov"
 TOOL_CHECKOV_CATEGORY="iac"
@@ -52,7 +52,9 @@ TOOL_PIP_AUDIT_INSTALL_LINUX="pip3 install pip-audit"
 TOOL_PIP_AUDIT_CATEGORY="dependency"
 
 # Bandit — Python SAST (uses python:3-slim with inline pip install as Docker fallback)
-TOOL_BANDIT_DOCKER="python:3-slim"
+# NOTE: python:3-slim is a rolling tag; digest pins the image at a point in time.
+# Re-pin periodically via: docker buildx imagetools inspect python:3-slim
+TOOL_BANDIT_DOCKER="python:3-slim@sha256:6a27522252aef8432841f224d9baaa6e9fce07b07584154fa0b9a96603af7456"
 TOOL_BANDIT_INSTALL_MACOS="brew install bandit"
 TOOL_BANDIT_INSTALL_LINUX="pip3 install bandit"
 TOOL_BANDIT_CATEGORY="sast"
@@ -82,7 +84,7 @@ TOOL_BUNDLER_AUDIT_INSTALL_LINUX="gem install bundler-audit"
 TOOL_BUNDLER_AUDIT_CATEGORY="dependency"
 
 # Brakeman — Ruby/Rails SAST
-TOOL_BRAKEMAN_DOCKER="presidentbeef/brakeman:v8.0.3"
+TOOL_BRAKEMAN_DOCKER="presidentbeef/brakeman:v8.0.3@sha256:1315360015c377d6de9613a58c105b2bc60bbbddd928288c6cc4262b87b8d77b"
 TOOL_BRAKEMAN_INSTALL_MACOS="gem install brakeman"
 TOOL_BRAKEMAN_INSTALL_LINUX="gem install brakeman"
 TOOL_BRAKEMAN_CATEGORY="sast"
@@ -94,19 +96,19 @@ TOOL_ESLINT_SECURITY_INSTALL_LINUX="npm install -g eslint eslint-plugin-security
 TOOL_ESLINT_SECURITY_CATEGORY="sast"
 
 # Dockle — container image linter
-TOOL_DOCKLE_DOCKER="goodwithtech/dockle:v0.4.15"
+TOOL_DOCKLE_DOCKER="goodwithtech/dockle:v0.4.15@sha256:eade932f793742de0aa8755406c7677cd7696f8675b6180926f7eeffa7abe6b9"
 TOOL_DOCKLE_INSTALL_MACOS="brew install goodwithtech/r/dockle"
 TOOL_DOCKLE_INSTALL_LINUX="brew install goodwithtech/r/dockle"
 TOOL_DOCKLE_CATEGORY="container"
 
 # TruffleHog — secret detection (OSS)
-TOOL_TRUFFLEHOG_DOCKER="trufflesecurity/trufflehog:3.93.6"
+TOOL_TRUFFLEHOG_DOCKER="trufflesecurity/trufflehog:3.93.6@sha256:82df2d2cfb10208ad4a3cb20b81073acf053beedfa7cce75e6159a21d6980c08"
 TOOL_TRUFFLEHOG_INSTALL_MACOS="brew install trufflehog"
 TOOL_TRUFFLEHOG_INSTALL_LINUX="brew install trufflehog"
 TOOL_TRUFFLEHOG_CATEGORY="secrets"
 
 # OSV-Scanner — universal dependency vulnerability scanner
-TOOL_OSV_SCANNER_DOCKER="ghcr.io/google/osv-scanner:v2.3.3"
+TOOL_OSV_SCANNER_DOCKER="ghcr.io/google/osv-scanner:v2.3.3@sha256:bf249317dcf838cf9e47f370cfd4dd4178d875bba14e3ce74d299c5bf1b129a1"
 TOOL_OSV_SCANNER_INSTALL_MACOS="brew install osv-scanner"
 TOOL_OSV_SCANNER_INSTALL_LINUX="brew install osv-scanner"
 TOOL_OSV_SCANNER_CATEGORY="dependency"
@@ -124,13 +126,13 @@ TOOL_BEARER_INSTALL_LINUX="brew install bearer/tap/bearer"
 TOOL_BEARER_CATEGORY="sast"
 
 # Grype — vulnerability scanner (SBOMs, filesystems)
-TOOL_GRYPE_DOCKER="anchore/grype:v0.93.0"
+TOOL_GRYPE_DOCKER="anchore/grype:v0.93.0@sha256:8c82371dad9da0e3476f870d607a5e029f8b6768d0dff8f67553a35ac943baa3"
 TOOL_GRYPE_INSTALL_MACOS="brew install grype"
 TOOL_GRYPE_INSTALL_LINUX="brew install grype"
 TOOL_GRYPE_CATEGORY="vulnerability"
 
 # KICS — IaC security scanner (Terraform, CloudFormation, K8s, Docker, etc.)
-TOOL_KICS_DOCKER="checkmarx/kics:v2.1.7"
+TOOL_KICS_DOCKER="checkmarx/kics:v2.1.7@sha256:ae55d199038a45b54a641e4cab1fa020b5ce7574d1de9052fc6a7cf3f0ca7bd7"
 TOOL_KICS_INSTALL_MACOS="brew install kics"
 TOOL_KICS_INSTALL_LINUX="brew install kics"
 TOOL_KICS_CATEGORY="iac"
@@ -160,7 +162,7 @@ TOOL_CPPCHECK_INSTALL_LINUX="brew install cppcheck"
 TOOL_CPPCHECK_CATEGORY="sast"
 
 # SwiftLint — Swift linter/SAST
-TOOL_SWIFTLINT_DOCKER="ghcr.io/realm/swiftlint:0.58.0"
+TOOL_SWIFTLINT_DOCKER="ghcr.io/realm/swiftlint:0.58.0@sha256:27b2dc68fb35f554d5cebcb7b47345d95559f85011bc50ef511dab36d3ae1277"
 TOOL_SWIFTLINT_INSTALL_MACOS="brew install swiftlint"
 TOOL_SWIFTLINT_INSTALL_LINUX="brew install swiftlint"
 TOOL_SWIFTLINT_CATEGORY="sast"

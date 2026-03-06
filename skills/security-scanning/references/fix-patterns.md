@@ -62,6 +62,7 @@ API_KEY = os.environ["API_KEY"]
 ## Container Security
 
 ### Dockerfile Best Practices
+- Pin images by SHA256 digest (`image:tag@sha256:...`) to prevent tag mutation attacks
 - Use specific image version tags instead of `:latest`
 - Run as non-root user (`USER app`)
 - Use slim/distroless base images

@@ -3,7 +3,7 @@ set -euo pipefail
 # update-tool-versions.sh — Check for new releases of pinned security tools
 # and update tool-registry.sh + ci-recommend.sh in-place.
 #
-# Dependencies: curl, jq, gh (optional, for GITHUB_TOKEN)
+# Dependencies: curl, jq, docker (with buildx), gh (optional, for GITHUB_TOKEN)
 # Environment:
 #   DRY_RUN=true        — report changes without modifying files
 #   GITHUB_TOKEN=...    — avoids GitHub API rate limits
@@ -70,6 +70,19 @@ resolve_tag_sha() {
 # Strip leading 'v' from a version string
 strip_v() { echo "${1#v}"; }
 
+# Strip @sha256:... digest suffix from a docker reference
+strip_digest() { echo "${1%%@sha256:*}"; }
+
+# Fetch the manifest digest for a Docker image (tag or tag@digest)
+# Returns sha256:... or empty string on failure
+fetch_docker_digest() {
+  local image="$1"
+  local ref
+  ref=$(strip_digest "$image")
+  docker buildx imagetools inspect "$ref" 2>/dev/null \
+    | grep '^Digest:' | awk '{print $2}'
+}
+
 # Compare major version: returns 0 if same major, 1 if different
 same_major() {
   local old="$1" new="$2"
@@ -115,10 +128,13 @@ update_tool() {
   fi
 
   # Parse current version from docker image tag
-  # e.g. "semgrep/semgrep:1.113.0" → "1.113.0" or "zricethezav/gitleaks:v8.24.0" → "v8.24.0"
-  local current_tag current_bare
-  current_tag="${current_docker_line##*:}"
-  current_tag="${current_tag%\"*}"
+  # e.g. "semgrep/semgrep:1.113.0@sha256:abc..." → tag="1.113.0", bare="1.113.0"
+  # Extract full image ref between quotes, then split on first ':'
+  local current_tag current_bare current_full_ref current_full_image
+  current_full_image="${current_docker_line#*\"}"
+  current_full_image="${current_full_image%\"*}"
+  current_full_ref="${current_full_image#*:}"
+  current_tag=$(strip_digest "$current_full_ref")
   current_bare=$(strip_v "$current_tag")
 
   if [[ "$current_bare" == "$latest_bare" ]]; then
@@ -163,7 +179,18 @@ update_tool() {
   local docker_image_base
   docker_image_base="${current_docker_line#*\"}"
   docker_image_base="${docker_image_base%%:*}"
-  sedi "s|${docker_var}=\"${docker_image_base}:${current_tag}\"|${docker_var}=\"${docker_image_base}:${new_docker_tag}\"|" "$REGISTRY"
+
+  # Fetch SHA256 digest for the new image
+  local new_digest new_docker_ref
+  new_digest=$(fetch_docker_digest "${docker_image_base}:${new_docker_tag}")
+  if [[ -n "$new_digest" ]]; then
+    new_docker_ref="${new_docker_tag}@${new_digest}"
+  else
+    log_info "$key" "WARNING: could not fetch digest, pinning by tag only"
+    new_docker_ref="${new_docker_tag}"
+  fi
+
+  sedi "s|${docker_var}=\"${docker_image_base}:${current_full_ref}\"|${docker_var}=\"${docker_image_base}:${new_docker_ref}\"|" "$REGISTRY"
 
   # ── Update install URL in tool-registry.sh ──
   local install_var="TOOL_${key}_INSTALL_LINUX"
@@ -189,6 +216,7 @@ update_tool() {
   esac
 
   # ── Update GitLab CI image in ci-recommend.sh ──
+  # CI templates use tag-only references (no digest pinning)
   if $has_gitlab; then
     local old_gl_tag="${docker_prefix}${current_bare}"
     local new_gl_tag="${docker_prefix}${latest_bare}"
