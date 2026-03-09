@@ -34,7 +34,7 @@ TOOL_HADOLINT_INSTALL_LINUX="brew install hadolint"
 TOOL_HADOLINT_CATEGORY="container"
 
 # Checkov — IaC scanner
-TOOL_CHECKOV_DOCKER="bridgecrew/checkov:3.2.507@sha256:2bcc40c76b433ec0f9cf7fd23e7c2495c0a9a270b3cc7fe891249c207d4d1427"
+TOOL_CHECKOV_DOCKER="bridgecrew/checkov:3.2.508@sha256:2c08ea0661df80ee1a9c72975724498337cc5853bf39c83aa7001b9866691d80"
 TOOL_CHECKOV_INSTALL_MACOS="brew install checkov"
 TOOL_CHECKOV_INSTALL_LINUX="pip3 install checkov"
 TOOL_CHECKOV_CATEGORY="iac"
