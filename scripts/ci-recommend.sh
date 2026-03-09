@@ -169,7 +169,7 @@ HADOEOF
           cat <<'CHECKOVEOF'
       # IaC scanning
       - name: Checkov (IaC security)
-        uses: bridgecrewio/checkov-action@4b38516b47b2df46475d84383f9aa2c8ef912aae # v12
+        uses: bridgecrewio/checkov-action@f9b0a2206b0401cad02ac0a66be2a7934a5be838 # v12
         with:
           directory: .
           quiet: true
@@ -212,7 +212,7 @@ BANDITEOF
           cat <<'GOSECEOF'
       # Go SAST
       - name: gosec (Go SAST)
-        uses: securego/gosec@271492bcd930ef72dfb9d00e5bb9544b3b407fb5 # v2.24.0
+        uses: securego/gosec@bb17e422fc34bf4c0a2e5cab9d07dc45a68c040c # v2.24.0
         with:
           args: ./...
 
@@ -420,7 +420,7 @@ GLTRIVYEOF
           cat <<'GLCHECKOVEOF'
 checkov:
   stage: security
-  image: bridgecrew/checkov:3.2.507@sha256:2bcc40c76b433ec0f9cf7fd23e7c2495c0a9a270b3cc7fe891249c207d4d1427
+  image: bridgecrew/checkov:3.2.508@sha256:2c08ea0661df80ee1a9c72975724498337cc5853bf39c83aa7001b9866691d80
   script:
     - checkov -d . --output json --quiet > checkov-results.json || true
   artifacts:
